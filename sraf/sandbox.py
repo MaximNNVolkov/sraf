@@ -35,7 +35,7 @@ class PythonSandbox(ABC):
 
 
 class RestrictedSubprocessSandbox(PythonSandbox):
-    FORBIDDEN_NODES = (ast.Import, ast.ImportFrom, ast.Global, ast.Nonlocal)
+    FORBIDDEN_NODES = (ast.Global, ast.Nonlocal)
     FORBIDDEN_NAMES = {
         "__import__",
         "breakpoint",

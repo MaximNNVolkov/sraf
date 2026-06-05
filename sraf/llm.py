@@ -31,6 +31,7 @@ class GigaChatClient(LLMClient):
         *,
         model: str | None = None,
         scope: str | None = None,
+        base_url: str | None = None,
         verify_ssl_certs: bool | None = None,
     ) -> None:
         self.credentials = credentials or os.getenv("GIGACHAT_CREDENTIALS")
@@ -38,7 +39,12 @@ class GigaChatClient(LLMClient):
             raise RuntimeError("GIGACHAT_CREDENTIALS is required")
         self.model = model or os.getenv("GIGACHAT_MODEL")
         self.scope = scope or os.getenv("GIGACHAT_SCOPE")
+        self.base_url = base_url or os.getenv("GIGACHAT_BASE_URL")
         self.verify_ssl_certs = verify_ssl_certs
+        if self.verify_ssl_certs is None:
+            env_verify = os.getenv("GIGACHAT_VERIFY_SSL_CERTS")
+            if env_verify is not None:
+                self.verify_ssl_certs = env_verify.lower() not in ("false", "0", "no")
 
     def complete(
         self,
@@ -63,6 +69,9 @@ class GigaChatClient(LLMClient):
         kwargs: dict[str, Any] = {
             "credentials": self.credentials,
         }
+        
+        if self.base_url:
+            kwargs["base_url"] = self.base_url
         
         # Handle SSL verification - when verify_ssl_certs is False,
         # create an SSL context that skips verification

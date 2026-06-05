@@ -9,7 +9,7 @@ from sraf.tools import ToolRegistry
 
 
 class AgentRunner:
-    def __init__(self, llm: LLMClient, tools: ToolRegistry, *, max_steps: int = 5) -> None:
+    def __init__(self, llm: LLMClient, tools: ToolRegistry, *, max_steps: int = 15) -> None:
         self.llm = llm
         self.tools = tools
         self.max_steps = max_steps

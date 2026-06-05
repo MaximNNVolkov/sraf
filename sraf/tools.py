@@ -8,6 +8,12 @@ from typing import Any, Callable
 
 from sraf.evaluator import Evaluator
 from sraf.sandbox import PythonSandbox, RestrictedSubprocessSandbox
+from sraf.skill_manager import (
+    save_skill as _save_skill,
+    list_skills as _list_skills,
+    run_skill as _run_skill,
+    delete_skill as _delete_skill,
+)
 
 
 ToolFunction = Callable[..., Any]
@@ -53,6 +59,40 @@ def default_tool_registry(
     def run_python(code: str) -> str:
         return sandbox.run(code).as_text()
 
+    def install_package(package: str) -> dict[str, str]:
+        """Install a pip package and return result."""
+        import subprocess, sys, os
+        # Unset SOCKS proxy for pip (can't reach PyPI through SOCKS)
+        clean_env = {k: v for k, v in os.environ.items() if not k.lower().endswith("_proxy")}
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-m", "pip", "install", package],
+                env=clean_env,
+                text=True,
+                capture_output=True,
+                timeout=60,
+                check=False,
+            )
+            if proc.returncode == 0:
+                return {"status": "success", "feedback": f"Package '{package}' installed.", "output": proc.stdout}
+            return {"status": "failure", "feedback": f"Failed to install '{package}': {proc.stderr[:300]}", "output": proc.stderr[:300]}
+        except subprocess.TimeoutExpired:
+            return {"status": "failure", "feedback": f"Installation of '{package}' timed out."}
+
+    def list_files(path: str = ".") -> dict[str, Any]:
+        """List files and directories at the given path."""
+        import os
+        target = Path(path)
+        if not target.exists():
+            return {"status": "failure", "feedback": f"Path '{path}' does not exist."}
+        if not target.is_dir():
+            return {"status": "failure", "feedback": f"Path '{path}' is not a directory."}
+        entries = []
+        for entry in sorted(target.iterdir(), key=lambda e: (not e.is_dir(), e.name.lower())):
+            kind = "📁" if entry.is_dir() else "📄"
+            entries.append(f"{kind} {entry.name}")
+        return {"status": "success", "path": str(target.resolve()), "entries": entries, "count": len(entries)}
+
     def verify_solution(task: str, result: str) -> dict[str, str]:
         if evaluator:
             verdict = evaluator.evaluate(task, result)
@@ -78,6 +118,54 @@ def default_tool_registry(
 
     return ToolRegistry(
         [
+            ToolSpec(
+                name="save_skill",
+                description="Save a working Python function as a reusable skill. Always call this after creating a working function so it can be reused later.",
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string", "description": "Unique skill name (e.g. 'add_numbers')."},
+                        "code": {"type": "string", "description": "Complete Python code defining the function."},
+                        "description": {"type": "string", "description": "What this skill does."},
+                    },
+                    "required": ["name", "code", "description"],
+                },
+                function=_save_skill,
+            ),
+            ToolSpec(
+                name="list_skills",
+                description="List all saved skills with their names, descriptions, and usage count.",
+                parameters={
+                    "type": "object",
+                    "properties": {},
+                },
+                function=lambda: _list_skills(),
+            ),
+            ToolSpec(
+                name="run_skill",
+                description="Execute a saved skill by name with the given arguments. Returns the result as JSON.",
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string", "description": "Name of the saved skill to run."},
+                        "arguments": {"type": "string", "description": "JSON object as string with keyword arguments (e.g. '{\"a\": 3, \"b\": 5}')."},
+                    },
+                    "required": ["name", "arguments"],
+                },
+                function=_run_skill,
+            ),
+            ToolSpec(
+                name="delete_skill",
+                description="Remove a skill from the registry and delete its file.",
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string", "description": "Name of the skill to delete."},
+                    },
+                    "required": ["name"],
+                },
+                function=_delete_skill,
+            ),
             ToolSpec(
                 name="run_python",
                 description="Execute Python code in a restricted sandbox and return stdout/stderr/status.",
@@ -131,6 +219,36 @@ def default_tool_registry(
                     "required": ["path", "content"],
                 },
                 function=write_file,
+            ),
+            ToolSpec(
+                name="install_package",
+                description="Install a Python package via pip. BEFORE calling this, ALWAYS ask the user for permission.",
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "package": {
+                            "type": "string",
+                            "description": "Package name (e.g. 'requests', 'numpy').",
+                        },
+                    },
+                    "required": ["package"],
+                },
+                function=install_package,
+            ),
+            ToolSpec(
+                name="list_files",
+                description="List files and directories at a given path. Returns entries with icons and count.",
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "path": {
+                            "type": "string",
+                            "description": "Directory path (default: current directory).",
+                            "default": ".",
+                        },
+                    },
+                },
+                function=list_files,
             ),
         ]
     )

@@ -4,6 +4,8 @@ import argparse
 from pathlib import Path
 import sys
 
+from dotenv import load_dotenv
+
 from sraf.conversation import ConversationSession
 from sraf.escalation import CliEscalation
 from sraf.evaluator import Evaluator
@@ -19,6 +21,7 @@ from sraf.tools import default_tool_registry
 
 
 def main(argv: list[str] | None = None) -> int:
+    load_dotenv()
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.command == "run":
@@ -50,13 +53,17 @@ def build_parser() -> argparse.ArgumentParser:
 
 def add_runtime_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--max-attempts", type=int, default=3)
-    parser.add_argument("--max-steps", type=int, default=5)
+    parser.add_argument("--max-steps", type=int, default=15)
     parser.add_argument("--base-prompt-file")
     parser.add_argument("--docker", action="store_true", help="Use Docker for run_python.")
     parser.add_argument(
         "--no-verify-ssl",
         action="store_true",
         help="Disable GigaChat SSL certificate verification for local proxy setups.",
+    )
+    parser.add_argument(
+        "--base-url",
+        help="Custom GigaChat API base URL. Overrides GIGACHAT_BASE_URL env var.",
     )
     parser.add_argument(
         "--demo",
@@ -117,7 +124,10 @@ def build_loop(args: argparse.Namespace) -> tuple[MetaLoop, str]:
         ])
     else:
         try:
-            llm = GigaChatClient(verify_ssl_certs=False if args.no_verify_ssl else None)
+            llm = GigaChatClient(
+                verify_ssl_certs=False if args.no_verify_ssl else None,
+                base_url=args.base_url,
+            )
         except RuntimeError as e:
             print(f"ERROR: {e}", file=sys.stderr)
             print("\nOptions:", file=sys.stderr)
