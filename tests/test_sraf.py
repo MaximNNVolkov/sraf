@@ -58,7 +58,7 @@ class ToolTests(unittest.TestCase):
     def test_sandbox_blocks_imports(self) -> None:
         result = RestrictedSubprocessSandbox().run("import os\nprint(os.getcwd())")
         self.assertEqual(result.status, "blocked")
-        self.assertIn("Forbidden syntax", result.stderr)
+        self.assertIn("Forbidden module", result.stderr)
 
     def test_sandbox_runs_simple_code(self) -> None:
         result = RestrictedSubprocessSandbox().run("print(2 + 2)")

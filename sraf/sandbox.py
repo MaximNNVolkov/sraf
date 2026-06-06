@@ -36,6 +36,18 @@ class PythonSandbox(ABC):
 
 class RestrictedSubprocessSandbox(PythonSandbox):
     FORBIDDEN_NODES = (ast.Global, ast.Nonlocal)
+    FORBIDDEN_MODULES = {
+        "subprocess",
+        "os",
+        "socket",
+        "shutil",
+        "ctypes",
+        "signal",
+        "requests",
+        "urllib",
+        "http",
+        "importlib",
+    }
     FORBIDDEN_NAMES = {
         "__import__",
         "breakpoint",
@@ -95,6 +107,16 @@ class RestrictedSubprocessSandbox(PythonSandbox):
         for node in ast.walk(tree):
             if isinstance(node, self.FORBIDDEN_NODES):
                 raise ValueError(f"Forbidden syntax: {type(node).__name__}")
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    root_module = alias.name.split(".")[0]
+                    if root_module in self.FORBIDDEN_MODULES:
+                        raise ValueError(f"Forbidden module: {root_module}")
+            if isinstance(node, ast.ImportFrom):
+                if node.module:
+                    root_module = node.module.split(".")[0]
+                    if root_module in self.FORBIDDEN_MODULES:
+                        raise ValueError(f"Forbidden module: {root_module}")
             if isinstance(node, ast.Name) and node.id in self.FORBIDDEN_NAMES:
                 raise ValueError(f"Forbidden name: {node.id}")
             if isinstance(node, ast.Attribute) and node.attr in self.FORBIDDEN_ATTRS:
