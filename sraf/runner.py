@@ -8,13 +8,53 @@ from sraf.models import AttemptResult, ChatMessage
 from sraf.tools import ToolRegistry
 
 
+# Tools that trigger extended mode when mentioned by the agent
+_EXTENDED_TOOL_TRIGGERS = {
+    "save_skill", "list_skills", "run_skill", "delete_skill",
+    "install_package", "verify_solution",
+}
+
+
 class AgentRunner:
-    def __init__(self, llm: LLMClient, tools: ToolRegistry, *, max_steps: int = 15) -> None:
+    def __init__(
+        self,
+        llm: LLMClient,
+        core_tools: ToolRegistry,
+        extended_tools: ToolRegistry | None = None,
+        *,
+        max_steps: int = 15,
+    ) -> None:
         self.llm = llm
-        self.tools = tools
+        self.core_tools = core_tools
+        self.extended_tools = extended_tools
         self.max_steps = max_steps
 
     def run(self, system_prompt: str, user_query: str) -> AttemptResult:
+        # Start with core tools only (small prompt)
+        result = self._run_with_tools(system_prompt, user_query, self.core_tools)
+
+        # Check if the agent tried to use an extended tool but didn't have it
+        if self.extended_tools and result.final_answer:
+            triggered = any(
+                keyword in result.final_answer.lower()
+                for keyword in _EXTENDED_TOOL_TRIGGERS
+            )
+            if triggered:
+                # Merge core + extended tools and re-run
+                merged = ToolRegistry(
+                    list(self.core_tools._tools.values())
+                    + list(self.extended_tools._tools.values())
+                )
+                result = self._run_with_tools(system_prompt, user_query, merged)
+
+        return result
+
+    def _run_with_tools(
+        self,
+        system_prompt: str,
+        user_query: str,
+        tools: ToolRegistry,
+    ) -> AttemptResult:
         messages = [
             ChatMessage(role="system", content=system_prompt),
             ChatMessage(role="user", content=user_query),
@@ -22,13 +62,19 @@ class AgentRunner:
         execution_log: list[dict[str, Any]] = []
 
         for step in range(1, self.max_steps + 1):
-            assistant_message = self.llm.complete(messages, functions=self.tools.specs())
+            assistant_message = self.llm.complete(messages, functions=tools.specs())
             messages.append(assistant_message)
 
             if assistant_message.function_call:
                 function_name, arguments = parse_function_call(assistant_message.function_call)
                 try:
-                    result = self.tools.call(function_name, arguments)
+                    result = tools.call(function_name, arguments)
+                except KeyError:
+                    # Tool not available in current registry — return a hint
+                    result = {
+                        "error": f"Tool '{function_name}' is not loaded. "
+                        f"Say 'I need {function_name}' and I'll add it."
+                    }
                 except Exception as exc:
                     result = {"error": str(exc)}
                 execution_log.append(

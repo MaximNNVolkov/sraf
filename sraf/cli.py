@@ -17,7 +17,7 @@ from sraf.refiner import PromptRefiner
 from sraf.runner import AgentRunner
 from sraf.sanitizer import PromptSanitizer
 from sraf.sandbox import DockerPythonSandbox, RestrictedSubprocessSandbox
-from sraf.tools import default_tool_registry
+from sraf.tools import core_tool_registry, extended_tool_registry
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -137,8 +137,9 @@ def build_loop(args: argparse.Namespace) -> tuple[MetaLoop, str]:
     
     evaluator = Evaluator(llm)
     sandbox = DockerPythonSandbox() if args.docker else RestrictedSubprocessSandbox()
-    tools = default_tool_registry(sandbox=sandbox, evaluator=evaluator, workspace_root=Path.cwd())
-    runner = AgentRunner(llm, tools, max_steps=args.max_steps)
+    core_tools = core_tool_registry(sandbox=sandbox, workspace_root=Path.cwd())
+    ext_tools = extended_tool_registry(sandbox=sandbox, evaluator=evaluator, workspace_root=Path.cwd())
+    runner = AgentRunner(llm, core_tools, ext_tools, max_steps=args.max_steps)
     base_prompt = BASE_SYSTEM_PROMPT
     if args.base_prompt_file:
         with open(args.base_prompt_file, encoding="utf-8") as stream:

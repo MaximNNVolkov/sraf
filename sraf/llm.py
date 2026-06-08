@@ -25,6 +25,18 @@ class GigaChatClient(LLMClient):
     without credentials or the provider installed.
     """
 
+    # Max tokens the model can handle (context + response).
+    # GigaChat base: 4096, GigaChat-Pro: 8192, GigaChat-Max: 32768
+    _MODEL_LIMITS: dict[str, int] = {
+        "GigaChat": 4096,
+        "GigaChat-2": 8192,
+        "GigaChat-Pro": 8192,
+        "GigaChat-2-Pro": 8192,
+        "GigaChat-Max": 32768,
+        "GigaChat-2-Max": 32768,
+        "GigaChat-Plus": 8192,
+    }
+
     def __init__(
         self,
         credentials: str | None = None,
@@ -33,11 +45,12 @@ class GigaChatClient(LLMClient):
         scope: str | None = None,
         base_url: str | None = None,
         verify_ssl_certs: bool | None = None,
+        max_tokens: int = 1024,
     ) -> None:
         self.credentials = credentials or os.getenv("GIGACHAT_CREDENTIALS")
         if not self.credentials:
             raise RuntimeError("GIGACHAT_CREDENTIALS is required")
-        self.model = model or os.getenv("GIGACHAT_MODEL")
+        self.model = model or os.getenv("GIGACHAT_MODEL", "GigaChat-2-Pro")
         self.scope = scope or os.getenv("GIGACHAT_SCOPE")
         self.base_url = base_url or os.getenv("GIGACHAT_BASE_URL")
         self.verify_ssl_certs = verify_ssl_certs
@@ -45,6 +58,21 @@ class GigaChatClient(LLMClient):
             env_verify = os.getenv("GIGACHAT_VERIFY_SSL_CERTS")
             if env_verify is not None:
                 self.verify_ssl_certs = env_verify.lower() not in ("false", "0", "no")
+        self.max_tokens = max_tokens
+        self._max_context = self._MODEL_LIMITS.get(self.model, 4096)
+
+    def _estimate_tokens(self, messages: list[ChatMessage], functions: list[dict] | None) -> int:
+        """Rough token estimation. Not exact, but good enough to avoid 413 errors."""
+        total = 0
+        for msg in messages:
+            if msg.content:
+                total += len(msg.content) // 2  # ~2 chars per token for Russian text
+            if msg.function_call:
+                total += len(str(msg.function_call)) // 3
+            total += 10  # overhead per message
+        if functions:
+            total += len(str(functions)) // 3
+        return total + self.max_tokens  # reserve space for response
 
     def complete(
         self,
@@ -57,8 +85,27 @@ class GigaChatClient(LLMClient):
         except ImportError as exc:
             raise RuntimeError("Install the gigachat package to use GigaChatClient") from exc
 
+        # Estimate tokens and truncate if needed
+        estimated = self._estimate_tokens(messages, functions)
+        if estimated > self._max_context:
+            # Truncate conversation history (keep system prompt and last user message)
+            keep_system = []
+            keep_tail = []
+            for msg in messages:
+                if msg.role == "system":
+                    keep_system.append(msg)
+                else:
+                    keep_tail.append(msg)
+            # Keep only the last 2 messages (user + assistant with function calls)
+            keep_tail = keep_tail[-2:] if len(keep_tail) > 2 else keep_tail
+            truncated = keep_system + keep_tail
+            re_estimated = self._estimate_tokens(truncated, functions)
+            if re_estimated < estimated:
+                messages = truncated
+
         payload: dict[str, Any] = {
             "messages": [self._to_sdk_message(message, Messages, MessagesRole) for message in messages],
+            "max_tokens": self.max_tokens,
         }
         if self.model:
             payload["model"] = self.model

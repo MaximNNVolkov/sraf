@@ -49,6 +49,7 @@ def build_prompt_with_context(
     base_prompt: str,
     turns: list[ConversationTurn],
     max_history_turns: int,
+    max_context_chars: int = 2000,
 ) -> str:
     relevant_turns = turns[-max_history_turns:]
     if not relevant_turns:
@@ -62,7 +63,10 @@ def build_prompt_with_context(
     for index, turn in enumerate(relevant_turns, start=1):
         context_lines.append(f"\nХод {index}.")
         context_lines.append(f"Пользователь: {turn.user_query}")
-        context_lines.append(f"Агент ({turn.status}): {turn.assistant_output}")
+        output = turn.assistant_output
+        if len(output) > max_context_chars:
+            output = output[:max_context_chars] + f"\n... [вывод сокращён с {len(output)} до {max_context_chars} символов]"
+        context_lines.append(f"Агент ({turn.status}): {output}")
     context_lines.append(CONTEXT_END)
     return f"{strip_conversation_context(base_prompt).rstrip()}\n\n" + "\n".join(context_lines)
 

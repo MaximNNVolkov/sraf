@@ -103,6 +103,9 @@ class MetaLoop:
                     prompt = restore_missing_instructions(prompt, original_instructions)
 
             try:
+                # Trim prompt if it's gotten too large
+                if len(prompt) > 8000:
+                    prompt = prompt[:8000] + "\n\n[prompt truncated due to size]"
                 attempt_result = self.runner.run(prompt, user_query)
             except Exception as exc:
                 feedback = f"Runner failed (attempt {attempt}): {exc}"
@@ -129,11 +132,20 @@ class MetaLoop:
                     )
 
             # Refine prompt for next attempt
+            # Truncate execution log to avoid blowing up the prompt
+            truncated_log = []
+            for entry in (attempt_result.execution_log or [])[-3:]:
+                entry = dict(entry)
+                if isinstance(entry.get("result"), str) and len(entry["result"]) > 500:
+                    entry["result"] = entry["result"][:500] + "... [truncated]"
+                if isinstance(entry.get("arguments"), dict):
+                    entry["arguments"] = {k: v if not isinstance(v, str) or len(v) < 200 else v[:200] + "..." for k, v in entry["arguments"].items()}
+                truncated_log.append(entry)
             try:
                 raw_prompt = self.refiner.refine(
                     prompt,
                     user_query,
-                    attempt_result.execution_log,
+                    truncated_log,
                     feedback,
                 )
             except (ValueError, RuntimeError) as exc:
@@ -151,6 +163,10 @@ class MetaLoop:
                 prompt = raw_prompt
                 continue
 
+            # Trim prompt if too large (keep under 8000 chars = ~4000 tokens)
+            clean = sanitized.clean_prompt or raw_prompt
+            if len(clean) > 8000:
+                clean = clean[:8000] + "\n\n[prompt truncated due to size]"
             if sanitized.has_conflicts:
                 try:
                     resolution = self.escalation.resolve_prompt_conflicts(sanitized.conflicts, raw_prompt)
@@ -174,7 +190,7 @@ class MetaLoop:
                     )
                 prompt = str(resolution.value)
             else:
-                prompt = sanitized.clean_prompt or raw_prompt
+                prompt = clean
 
             # Re-validate after refinement
             try:
