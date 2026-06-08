@@ -47,12 +47,12 @@ class GigaChatClient(LLMClient):
         verify_ssl_certs: bool | None = None,
         max_tokens: int = 1024,
     ) -> None:
-        self.credentials = credentials or os.getenv("GIGACHAT_CREDENTIALS")
+        self.credentials = credentials or os.getenv("GIGACHAT_CREDENTIALS") or os.getenv("JPY_API_TOKEN")
         if not self.credentials:
-            raise RuntimeError("GIGACHAT_CREDENTIALS is required")
+            raise RuntimeError("GIGACHAT_CREDENTIALS (or JPY_API_TOKEN) is required")
         self.model = model or os.getenv("GIGACHAT_MODEL", "GigaChat-2-Pro")
         self.scope = scope or os.getenv("GIGACHAT_SCOPE")
-        self.base_url = base_url or os.getenv("GIGACHAT_BASE_URL")
+        self.base_url = base_url or os.getenv("GIGACHAT_BASE_URL") or os.getenv("GIGACHST_API_URL")
         self.verify_ssl_certs = verify_ssl_certs
         if self.verify_ssl_certs is None:
             env_verify = os.getenv("GIGACHAT_VERIFY_SSL_CERTS")
