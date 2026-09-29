@@ -15,14 +15,21 @@
  * Код выхода 1, если найдены ошибки.
  */
 import { existsSync, mkdirSync } from "node:fs";
+import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
+// playwright ищется рядом со скриптом, затем в текущей папке
 let chromium;
-try {
-  ({ chromium } = await import("playwright"));
-} catch {
-  console.error("Не найден пакет playwright. Установите: npm install (в корне репозитория) или npm i -D playwright");
+for (const base of [import.meta.url, pathToFileURL(process.cwd() + "/").href]) {
+  try {
+    const mod = await import(pathToFileURL(createRequire(base).resolve("playwright")).href);
+    chromium = mod.chromium ?? mod.default?.chromium;
+    if (chromium) break;
+  } catch {}
+}
+if (!chromium) {
+  console.error("Не найден пакет playwright. Установите в текущей папке: npm i playwright");
   process.exit(2);
 }
 
