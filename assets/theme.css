@@ -98,7 +98,7 @@ html, body {
 .content {
   position: absolute;
   inset: 0;
-  padding: 96px 120px 0;
+  padding: 96px 120px 128px; /* снизу — место под футер */
   display: flex;
   flex-direction: column;
 }
@@ -225,10 +225,92 @@ html, body {
 .process-chain .node-caption { font: 400 18px var(--font); fill: rgba(255, 255, 255, .6); }
 .node-pulse { transform-box: fill-box; transform-origin: center; animation: pulse 2.4s ease-out infinite; }
 
+/* ---------- Сетка тела слайда ----------
+   .body занимает всё место между шапкой и футером и центрирует
+   содержимое по вертикали. Внутри — сетки на всю ширину safe-area
+   (1680px), чтобы контент не прижимался к одной стороне.            */
+
+.body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 32px;
+  padding-top: 40px;
+}
+/* не сжимать блоки: переполнение должно быть видно, а не тихо обрезано */
+.body > * { flex-shrink: 0; }
+
+.grid { display: grid; gap: 32px; width: 100%; }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.split  { display: grid; grid-template-columns: 1.15fr 1fr; gap: 72px; align-items: center; width: 100%; }
+.split--even { grid-template-columns: 1fr 1fr; }
+.stretch { align-items: stretch; }
+
+/* Универсальная карточка */
+.card {
+  position: relative;
+  padding: 40px 44px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: 0 20px 50px -34px rgba(20, 33, 61, .4);
+}
+.card h3 { margin: 0 0 12px; font-size: 34px; line-height: 1.2; font-weight: 700; }
+.card p  { margin: 0; font-size: 26px; line-height: 1.5; color: var(--muted); }
+.card h3 + .bullets { margin-top: 28px; }
+.card--soft { background: var(--soft); border-color: transparent; box-shadow: none; }
+
+/* Маркированный список */
+.bullets { margin: 0; padding: 0; list-style: none; display: grid; gap: 26px; }
+.bullets li { position: relative; padding-left: 48px; font-size: 30px; line-height: 1.45; }
+.bullets li::before {
+  content: ""; position: absolute; left: 0; top: .5em;
+  width: 18px; height: 18px; border-radius: 6px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+}
+.bullets strong { font-weight: 700; }
+
+/* KPI — крупные цифры */
+.kpi { padding: 44px; border-radius: 24px; background: var(--soft); }
+.kpi-value { font-size: 96px; line-height: 1; font-weight: 800; letter-spacing: -.03em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.kpi-value small { font-size: 44px; font-weight: 700; color: var(--muted); }
+.kpi-label { margin-top: 18px; font-size: 26px; line-height: 1.4; color: var(--muted); }
+.kpi-delta { display: inline-block; margin-top: 20px; padding: 6px 16px; border-radius: 999px; font-size: 22px; font-weight: 700; }
+.kpi-delta.up   { color: #0e8a72; background: rgba(24, 184, 154, .14); }
+.kpi-delta.down { color: #c2383d; background: rgba(229, 72, 77, .12); }
+
+/* Горизонтальная схема шагов процесса */
+.steps { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 24px; counter-reset: step; }
+.steps .step-item { position: relative; padding: 36px 32px; border-radius: 24px; background: var(--soft); counter-increment: step; }
+.steps .step-item::before {
+  content: counter(step);
+  display: grid; place-items: center;
+  width: 64px; height: 64px; margin-bottom: 24px; border-radius: 18px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff; font-size: 28px; font-weight: 800;
+}
+.steps .step-item:not(:last-child)::after {
+  content: ""; position: absolute; top: 68px; right: -24px; width: 24px; height: 3px;
+  background: var(--accent); opacity: .5;
+}
+.steps h3 { margin: 0 0 10px; font-size: 30px; line-height: 1.2; }
+.steps p  { margin: 0; font-size: 24px; line-height: 1.45; color: var(--muted); }
+
+/* Визуальная панель под схему/график/иллюстрацию */
+.visual {
+  display: grid; place-items: center;
+  min-height: 520px; border-radius: 28px;
+  background: linear-gradient(135deg, var(--navy-800), var(--navy-700));
+  color: #fff; overflow: hidden;
+}
+
 /* ---------- Слайд с таблицей ---------- */
 
 .table-wrap {
-  margin-top: 48px;
   border: 1px solid var(--line);
   border-radius: 20px;
   overflow: hidden;
@@ -237,8 +319,9 @@ html, body {
 
 .data-table { width: 100%; border-collapse: collapse; font-size: 26px; }
 .data-table th {
-  padding: 26px 32px;
+  padding: 24px 32px;
   text-align: left;
+  white-space: nowrap;
   font-size: 20px;
   font-weight: 700;
   letter-spacing: .1em;
@@ -246,7 +329,7 @@ html, body {
   color: #fff;
   background: var(--navy-800);
 }
-.data-table td { padding: 20px 32px; border-top: 1px solid var(--line); vertical-align: middle; }
+.data-table td { padding: 18px 32px; border-top: 1px solid var(--line); vertical-align: middle; }
 .data-table tbody tr:nth-child(even) td { background: var(--soft); }
 .data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
 .data-table .step {
@@ -274,12 +357,11 @@ html, body {
 .pill--risk { color: #b36b00; background: rgba(242, 169, 59, .18); }
 .pill--plan { color: var(--muted); background: rgba(91, 107, 130, .12); }
 
-.table-note { margin-top: 24px; font-size: 22px; color: var(--muted); }
+.table-note { font-size: 22px; color: var(--muted); }
 
 /* ---------- Слайд с тезисами ---------- */
 
 .theses {
-  margin-top: 56px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 32px;
@@ -312,7 +394,6 @@ html, body {
 .thesis p { margin: 0; font-size: 26px; line-height: 1.5; color: var(--muted); }
 
 .takeaway {
-  margin-top: 40px;
   display: flex; align-items: center; gap: 28px;
   padding: 30px 44px;
   border-radius: 20px;

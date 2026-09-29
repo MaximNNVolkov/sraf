@@ -1,0 +1,11 @@
+{
+  "name": "business-slides",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node .claude/skills/business-slides/scripts/check_layout.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.55.0"
+  }
+}
