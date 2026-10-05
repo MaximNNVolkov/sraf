@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Стратегическая сессия · Домклик ВВБ</title>
+<style>
+/*@@FONTS@@*/
+:root{
+  --bg:#0B0A09; --panel:#151413; --panel2:#1C1A17; --line:#2E2A25;
+  --ink:#F3EDE2; --dim:#B5AD9F; --mute:#867E72;
+  --gold:#E7B24A; --gold-soft:#F3D493; --green:#3CCB7B; --coral:#EE7150; --steel:#A3B6C8;
+  --silver:#CBD0D6; --bronze:#CF8D58;
+  --fd:'Oswald','Bahnschrift SemiCondensed','Arial Narrow',sans-serif;
+  --fb:'Manrope','Segoe UI',Arial,sans-serif;
+  --fs:Georgia,'Times New Roman',serif;
+  --fm:'Courier New',Courier,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#000;color:var(--ink);font-family:var(--fb);overflow:hidden}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%);transform-origin:center;background:var(--bg);overflow:hidden}
+
+/* ---------- слайд ---------- */
+.slide{position:absolute;inset:0;padding:130px 140px 100px;display:flex;flex-direction:column;
+  background:radial-gradient(ellipse 110% 85% at 50% 0%,#201C17 0%,rgba(11,10,9,0) 62%),
+             radial-gradient(ellipse 120% 120% at 50% 50%,rgba(0,0,0,0) 55%,rgba(0,0,0,.6) 100%),var(--bg);
+  opacity:0;visibility:hidden;transition:opacity .45s ease,visibility 0s linear .45s}
+.slide.active{opacity:1;visibility:visible;transition:opacity .55s ease .3s,visibility 0s}
+.rv{opacity:0;transform:translateY(26px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.7,.2,1);
+  transition-delay:calc(var(--i,0) * 140ms + 450ms)}
+.slide.active .rv{opacity:1;transform:none}
+.slate{position:absolute;left:140px;right:140px;top:46px;display:flex;justify-content:space-between;
+  font:600 17px/1 var(--fb);letter-spacing:.32em;text-transform:uppercase;color:var(--mute);pointer-events:none}
+.slate span:first-child::before{content:'';display:inline-block;width:10px;height:10px;border-radius:50%;
+  background:var(--coral);margin-right:14px;vertical-align:1px;animation:rec 1.6s steps(1) infinite}
+@keyframes rec{50%{opacity:.15}}
+
+h1,h2,h3,h4,p{margin:0}
+.kicker{font:700 24px/1.2 var(--fb);letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-bottom:22px}
+h2{font:600 88px/1.02 var(--fd);text-transform:uppercase;letter-spacing:.005em}
+.lead{font:italic 400 36px/1.35 var(--fs);color:var(--dim);margin-top:18px}
+.hd{margin-bottom:40px}
+.ph{text-decoration:underline dashed rgba(231,178,74,.55);text-decoration-thickness:2px;text-underline-offset:8px}
+.val.ph,.total .ph{text-decoration:none}
+.gold{color:var(--gold)} .green{color:var(--green)} .coral{color:var(--coral)} .steel{color:var(--steel)}
+
+/* проектор */
+.beam{position:absolute;left:50%;top:-60px;width:2600px;height:1400px;transform:translateX(-50%);pointer-events:none;
+  background:conic-gradient(from 0deg at 50% 0%,transparent 0deg 163deg,rgba(255,226,170,.07) 170deg,rgba(255,226,170,.13) 180deg,rgba(255,226,170,.07) 190deg,transparent 197deg 360deg);
+  filter:blur(6px);animation:flicker 6s infinite}
+@keyframes flicker{0%,100%{opacity:1}7%{opacity:.82}9%{opacity:1}48%{opacity:.93}52%{opacity:1}77%{opacity:.86}79%{opacity:1}}
+
+/* рамка под фото — видоискатель */
+.photo{position:relative;border-radius:6px;overflow:hidden;cursor:default;
+  background:#151412 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='38' r='17' fill='%232E2A25'/%3E%3Cpath d='M15 100c0-23 15-38 35-38s35 15 35 38z' fill='%232E2A25'/%3E%3C/svg%3E") center 70%/46% no-repeat;
+  box-shadow:inset 0 0 0 1px var(--line)}
+.photo.has-img{background-size:cover;background-position:center 30%}
+.photo::before{content:'';position:absolute;inset:16px;pointer-events:none;--c:rgba(231,178,74,.9);
+  background:linear-gradient(var(--c),var(--c)) top left/44px 3px no-repeat,linear-gradient(var(--c),var(--c)) top left/3px 44px no-repeat,
+    linear-gradient(var(--c),var(--c)) top right/44px 3px no-repeat,linear-gradient(var(--c),var(--c)) top right/3px 44px no-repeat,
+    linear-gradient(var(--c),var(--c)) bottom left/44px 3px no-repeat,linear-gradient(var(--c),var(--c)) bottom left/3px 44px no-repeat,
+    linear-gradient(var(--c),var(--c)) bottom right/44px 3px no-repeat,linear-gradient(var(--c),var(--c)) bottom right/3px 44px no-repeat}
+.photo::after{content:attr(data-label);position:absolute;left:0;right:0;top:26px;text-align:center;
+  font:700 18px/1 var(--fb);letter-spacing:.28em;text-transform:uppercase;color:#6F685E}
+.photo.has-img::after{display:none}
+.photo.round{border-radius:50%;box-shadow:0 0 0 3px var(--m,var(--gold))}
+.photo.round::before{display:none}
+.photo.round::after{display:none}
+
+/* ---------- обложка ---------- */
+.cover{justify-content:center;align-items:flex-start}
+.cover .cover-in{position:relative;z-index:1}
+.presents{font:700 26px/1.5 var(--fb);letter-spacing:.38em;text-transform:uppercase;color:var(--gold)}
+.presents span{color:var(--mute);letter-spacing:.3em;font-weight:600}
+.cover h1{font:700 176px/.95 var(--fd);text-transform:uppercase;letter-spacing:-.005em;margin:36px 0 34px;
+  text-shadow:0 0 60px rgba(231,178,74,.18)}
+.tagline{font:italic 400 44px/1.3 var(--fs);color:var(--gold-soft)}
+.billing{margin-top:90px;border-top:1px solid var(--line);padding-top:30px;max-width:1640px}
+.billing p{font:500 22px/1.7 var(--fd);letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
+.billing p b{color:var(--gold);font-weight:500;padding:0 .4em}
+.billing p span{color:var(--ink)}
+
+/* отсчёт кинопроектора */
+.leader{position:absolute;inset:0;z-index:5;display:grid;place-items:center;opacity:0;pointer-events:none;
+  background:radial-gradient(circle at 50% 50%,#2C2925 0%,#0E0D0C 72%)}
+.leader::before,.leader::after{content:'';position:absolute;background:rgba(207,200,187,.55)}
+.leader::before{left:0;right:0;top:50%;height:3px} .leader::after{top:0;bottom:0;left:50%;width:3px}
+.ring{position:relative;width:640px;height:640px;border-radius:50%;border:6px solid #D2CABC;
+  box-shadow:0 0 0 22px rgba(14,13,12,.9),0 0 0 28px #D2CABC;overflow:hidden;z-index:1}
+@property --a{syntax:'<angle>';inherits:false;initial-value:0deg}
+.sweep{position:absolute;inset:0;background:conic-gradient(rgba(210,202,188,.28) 0deg var(--a),transparent var(--a) 360deg)}
+.ring .n{position:absolute;inset:0;display:grid;place-items:center;font:600 420px/1 var(--fd);color:#ECE5D7;opacity:0}
+.cover.intro .leader{animation:leaderOut 3.7s ease forwards}
+.cover.intro .sweep{animation:sweep 1s linear 3}
+.cover.intro .n3{animation:num 1s steps(1) 0s} .cover.intro .n2{animation:num 1s steps(1) 1s} .cover.intro .n1{animation:num 1s steps(1) 2s}
+.cover.intro .rv{transition-delay:calc(3.6s + var(--i,0) * 160ms)}
+@keyframes leaderOut{0%,84%{opacity:1}100%{opacity:0}}
+@keyframes sweep{from{--a:0deg}to{--a:360deg}}
+@keyframes num{0%{opacity:1}100%{opacity:1}}
+
+/* ---------- программа ---------- */
+.strip{margin-top:auto;position:relative;background:#060605;border-radius:8px;padding:64px 34px}
+.strip::before,.strip::after{content:'';position:absolute;left:34px;right:34px;height:22px;
+  background:repeating-linear-gradient(90deg,#D9D1C2 0 24px,transparent 24px 56px);opacity:.75;border-radius:3px}
+.strip::before{top:20px} .strip::after{bottom:20px}
+.frames{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.frame{background:linear-gradient(180deg,#221F1A,#131210);border-radius:6px;padding:40px 34px 44px;min-height:400px;display:flex;flex-direction:column}
+.frame .act-l{font:600 32px/1 var(--fd);letter-spacing:.12em;color:var(--gold)}
+.frame h3{font:600 56px/1.02 var(--fd);text-transform:uppercase;margin:22px 0 auto}
+.frame p{font:500 25px/1.45 var(--fb);color:var(--dim);margin-top:30px}
+
+/* ---------- акты ---------- */
+.act{justify-content:center}
+.act .act-num{position:absolute;right:110px;top:50%;transform:translateY(-52%);font:400 600px/1 var(--fs);
+  color:transparent;-webkit-text-stroke:3px rgba(231,178,74,.5);pointer-events:none}
+.act.active .act-num{animation:numIn 1.6s ease both}
+@keyframes numIn{from{opacity:0;transform:translateY(-48%) scale(.96)}to{opacity:1;transform:translateY(-52%)}}
+.act .act-title{font:700 150px/.95 var(--fd);text-transform:uppercase;max-width:1150px;text-shadow:0 0 50px rgba(0,0,0,.6)}
+.act .act-sub{font:italic 400 42px/1.35 var(--fs);color:var(--dim);margin-top:34px;max-width:1000px}
+.act .kicker{font-size:28px}
+
+/* ---------- награждение ---------- */
+.winners{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:60px}
+.win .photo{height:440px}
+.win figcaption{margin-top:26px}
+.chip{display:inline-block;font:700 20px/1 var(--fb);letter-spacing:.16em;text-transform:uppercase;padding:12px 18px;border-radius:999px;border:1.5px solid currentColor}
+.win h3{font:600 56px/1.04 var(--fd);text-transform:uppercase;margin:18px 0 10px}
+.win p.ph,.win p.sub{font:500 28px/1.3 var(--fb);color:var(--dim)}
+figure{margin:0}
+
+.podium{margin-top:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:34px;align-items:end}
+.pcol{display:flex;flex-direction:column;align-items:center;text-align:center}
+.pcol .photo{width:160px;height:160px}
+.pcol h3{font:600 40px/1.05 var(--fd);text-transform:uppercase;margin:24px 0 22px}
+.step{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border-radius:10px 10px 0 0;border-top:4px solid var(--m)}
+.step b{font:700 118px/1 var(--fd);color:var(--m)}
+.step span{font:700 20px/1 var(--fb);letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
+.r1{--m:var(--gold);height:300px;background:linear-gradient(180deg,rgba(231,178,74,.30),rgba(231,178,74,.03))}
+.r2{--m:var(--silver);height:225px;background:linear-gradient(180deg,rgba(203,208,214,.24),rgba(203,208,214,.03))}
+.r3{--m:var(--bronze);height:160px;background:linear-gradient(180deg,rgba(207,141,88,.26),rgba(207,141,88,.03))}
+.slide.active .step{animation:rise 1s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*140ms + 500ms)}
+@keyframes rise{from{transform:scaleY(.2);transform-origin:bottom;opacity:0}to{transform:none;opacity:1}}
+
+.roles .role-tag{font:700 76px/1 var(--fd);color:var(--gold);margin-bottom:22px;letter-spacing:.02em}
+.roles .photo{height:390px}
+
+/* ---------- спикер ---------- */
+.speaker{display:grid;grid-template-columns:1fr 540px;column-gap:120px;align-items:center}
+.speaker h2{font-size:100px}
+.sp-photo .photo{height:650px}
+.sp-photo figcaption,.duo figcaption{margin-top:24px;display:flex;flex-direction:column;gap:8px}
+.sp-photo figcaption span,.duo figcaption span{font:700 19px/1 var(--fb);letter-spacing:.32em;text-transform:uppercase;color:var(--gold)}
+.sp-photo figcaption b,.duo figcaption b{font:600 46px/1.05 var(--fd);text-transform:uppercase;font-weight:600}
+.questions{margin-top:56px;display:flex;flex-direction:column;gap:20px}
+.q{display:flex;gap:26px;align-items:baseline;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:26px 30px}
+.q b{font:600 34px/1 var(--fd);color:var(--gold)}
+.q p{font:600 31px/1.3 var(--fb)}
+.tatar{grid-template-columns:1fr 1010px;column-gap:90px}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.duo .photo{height:580px}
+.act3 .mini-num{font:400 220px/.85 var(--fs);color:transparent;-webkit-text-stroke:3px rgba(231,178,74,.55);margin-bottom:26px}
+.act3 .choice{font:600 60px/1.1 var(--fd);color:var(--gold);text-transform:uppercase;margin-top:30px}
+
+/* ---------- неипотека ---------- */
+.drivers{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:40px}
+.drv{background:linear-gradient(180deg,#1C1A16,#131210);border:1px solid var(--line);border-radius:14px;padding:40px 44px}
+.drv .no{font:600 28px/1 var(--fd);letter-spacing:.14em;color:var(--gold)}
+.drv h3{font:700 36px/1.25 var(--fb);margin:20px 0 22px;min-height:90px}
+.drv .val{font:700 110px/1 var(--fd);color:var(--gold)}
+.drv .cap{font:500 24px/1.3 var(--fb);color:var(--mute);margin-top:12px}
+.total{margin-top:36px;padding-top:30px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+.total h3{font:600 50px/1 var(--fd);text-transform:uppercase}
+.total p{font:700 80px/1 var(--fd);color:var(--green)}
+
+/* ---------- кассовые сборы ---------- */
+.marquee{margin-top:auto;display:grid;grid-template-columns:repeat(5,1fr);gap:26px}
+.marq{position:relative;height:460px;border-radius:16px;padding:16px;
+  background:radial-gradient(circle,#FFE3A6 0 4px,rgba(255,206,120,.28) 5px 7px,transparent 8px) 0 0/30px 30px,#2A2012;
+  animation:chase 1.2s steps(2) infinite}
+@keyframes chase{to{background-position:15px 0,0 0}}
+.marq .in{height:100%;border-radius:8px;background:#11100E;padding:36px 28px;display:flex;flex-direction:column;justify-content:space-between}
+.marq .lab{font:700 24px/1.25 var(--fb);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.marq .v{font:700 66px/1 var(--fd);text-transform:uppercase;white-space:nowrap}
+.marq .note{font:500 22px/1.3 var(--fb);color:var(--mute);margin-top:10px}
+
+/* ---------- таблица ---------- */
+table{width:100%;border-collapse:collapse;margin-top:auto}
+th{font:700 19px/1 var(--fb);letter-spacing:.26em;text-transform:uppercase;color:var(--mute);text-align:left;padding:0 26px 20px;border-bottom:1px solid var(--line)}
+td{font:500 31px/1.2 var(--fb);padding:21px 26px;border-bottom:1px solid var(--line)}
+td.n,th.n{text-align:right}
+td.n{font:600 42px/1 var(--fd)}
+tr.hit td{background:rgba(60,203,123,.07)}
+.st{display:inline-block;font:700 19px/1 var(--fb);letter-spacing:.14em;text-transform:uppercase;padding:10px 16px;border-radius:999px;border:1.5px solid currentColor;white-space:nowrap}
+
+/* ---------- спойлер ---------- */
+.spoiler{background:radial-gradient(ellipse 100% 80% at 50% 0%,#3C1A13 0%,rgba(11,10,9,0) 65%),radial-gradient(ellipse 120% 120% at 50% 50%,rgba(0,0,0,0) 55%,rgba(0,0,0,.6) 100%),var(--bg)}
+.spoiler h2{font-size:112px;max-width:1640px}
+.spoiler h2 em{font-style:normal;color:var(--coral)}
+.proj{margin-top:auto}
+.proj .lead{margin:0 0 26px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+.tile{background:var(--panel);border-top:4px solid var(--coral);border-radius:4px 4px 12px 12px;padding:34px 36px 38px}
+.tile .lab{font:700 24px/1.2 var(--fb);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.tile .v{font:700 92px/1 var(--fd);color:var(--coral);margin-top:22px;text-transform:uppercase}
+
+/* ---------- развилка ---------- */
+.fork{position:relative;height:620px;margin-top:auto}
+.fork svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.fork path{fill:none;stroke-width:9;stroke-linecap:round;stroke-dasharray:1000;stroke-dashoffset:1000}
+.slide.active .fork path{transition:stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1) .7s;stroke-dashoffset:0}
+.slide.active .fork path.b{transition-delay:1.1s}
+.node{position:absolute;left:50px;top:190px;width:240px;height:240px;border-radius:50%;border:3px solid var(--ink);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;background:#141311;box-shadow:0 0 60px rgba(243,237,226,.12)}
+.node p:first-child{font:700 18px/1 var(--fb);letter-spacing:.28em;text-transform:uppercase;color:var(--dim)}
+.node p:last-child{font:600 54px/1.1 var(--fd);margin-top:10px}
+.end{position:absolute;left:1000px;width:640px;border-radius:16px;padding:30px 40px;border:2px solid var(--c);background:var(--bgc)}
+.end .lab{font:700 20px/1 var(--fb);letter-spacing:.3em;text-transform:uppercase;color:var(--c)}
+.end h3{font:600 66px/1 var(--fd);text-transform:uppercase;margin-top:16px}
+.end p{font:600 40px/1 var(--fd);text-transform:uppercase;color:var(--c);margin-top:12px}
+.end.a{top:20px;--c:var(--gold);--bgc:#221B0F;box-shadow:0 0 70px rgba(231,178,74,.18)}
+.end.b{top:395px;--c:var(--steel);--bgc:#131A20}
+
+/* ---------- сценарий ---------- */
+.script{margin-top:auto;position:relative;background:#EEE7D8;color:#1B1915;border-radius:4px;padding:46px 70px 40px;
+  box-shadow:0 30px 90px rgba(0,0,0,.65);transform:rotate(-.5deg);font-family:var(--fm)}
+.script .slug{font:700 26px/1.3 var(--fm);text-transform:uppercase;letter-spacing:.04em;margin-bottom:28px}
+.script ol{list-style:none;margin:0;padding:0;columns:2;column-gap:80px}
+.script li{font:400 29px/1.42 var(--fm);break-inside:avoid;margin-bottom:22px}
+.script li b{display:block;font-weight:700;font-size:24px;letter-spacing:.06em}
+.stamp{position:absolute;right:56px;top:32px;border:4px solid #B23A28;color:#B23A28;font:700 30px/1 var(--fd);
+  letter-spacing:.12em;text-transform:uppercase;padding:8px 16px;transform:rotate(7deg);opacity:.85}
+
+/* ---------- команда ---------- */
+.pitch{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:40px}
+.clap{border-radius:14px;overflow:hidden;background:var(--panel);border:1px solid var(--line)}
+.clap .bar{height:56px;background:repeating-linear-gradient(135deg,#F0EADF 0 30px,#121110 30px 60px)}
+.clap .body{padding:34px 40px 42px}
+.clap .num{font:700 150px/1 var(--fd);color:var(--c)}
+.clap h3{font:700 36px/1.25 var(--fb);margin-top:14px}
+.clap p{font:italic 400 30px/1.35 var(--fs);color:var(--dim);margin-top:16px}
+
+/* ---------- 2027 ---------- */
+.center{justify-content:center;align-items:center;text-align:center}
+.sign{position:relative;border-radius:26px;padding:22px;
+  background:radial-gradient(circle,#FFE3A6 0 5px,rgba(255,206,120,.3) 6px 9px,transparent 10px) 0 0/36px 36px,#2A2012;
+  animation:chase2 1.1s steps(2) infinite;box-shadow:0 0 120px rgba(231,178,74,.2)}
+@keyframes chase2{to{background-position:18px 0,0 0}}
+.sign .in{background:#110F0C;border-radius:12px;padding:60px 150px 70px}
+.sign .kicker{margin-bottom:10px;font-size:30px;letter-spacing:.5em}
+.sign h2{font:700 270px/1 var(--fd);text-shadow:0 0 50px rgba(231,178,74,.35)}
+.sign .q2{font:italic 400 84px/1 var(--fs);color:var(--gold-soft);margin-top:6px}
+
+/* ---------- ЕГРН ---------- */
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:60px;margin:auto 0}
+.fact{display:flex;flex-direction:column;align-items:center;text-align:center}
+.dial{position:relative;width:420px;height:420px}
+.dial svg{width:100%;height:100%;transform:rotate(-90deg)}
+.dial circle{fill:none;stroke-width:24}
+.dial .bg{stroke:#24211D}
+.dial .fg{stroke:var(--c);stroke-linecap:round;stroke-dasharray:1131;stroke-dashoffset:1131;transition:stroke-dashoffset 1.6s cubic-bezier(.3,.7,.2,1) .5s}
+.dial .val{position:absolute;inset:0;display:grid;place-items:center;font:700 128px/1 var(--fd);color:var(--c)}
+.fact h3{font:700 38px/1.25 var(--fb);margin-top:34px}
+
+/* ---------- титры ---------- */
+.credits{padding:0;overflow:hidden}
+.roll{position:absolute;left:0;right:0;top:100%;text-align:center}
+.credits.run .roll{animation:roll 30s linear forwards}
+@keyframes roll{from{transform:translateY(0)}to{transform:translateY(-100%) translateY(-1080px)}}
+.roll .t1{font:600 30px/1.4 var(--fb);letter-spacing:.34em;text-transform:uppercase;color:var(--gold)}
+.roll .t2{font:700 96px/1 var(--fd);text-transform:uppercase;margin:24px 0 140px}
+.cr{margin-bottom:110px}
+.cr h4{font:700 24px/1 var(--fb);letter-spacing:.34em;text-transform:uppercase;color:var(--gold);margin-bottom:40px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:56px;margin-bottom:20px}
+.row p:first-child{text-align:right;font:500 30px/1.3 var(--fb);color:var(--dim)}
+.row p:last-child{text-align:left;font:600 38px/1.2 var(--fd);text-transform:uppercase}
+.wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0}
+.credits.run .wrap{animation:fadeIn 1.6s ease 28.5s forwards}
+@keyframes fadeIn{to{opacity:1}}
+.wrap h2{font:700 260px/1 var(--fd)}
+.wrap p{font:italic 400 44px/1.3 var(--fs);color:var(--gold-soft);margin-top:20px}
+
+/* ---------- плёнка и интерфейс ---------- */
+#grain{position:fixed;inset:-50%;pointer-events:none;z-index:40;opacity:.075;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain .9s steps(6) infinite}
+@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-3%)}60%{transform:translate(-2%,-1%)}80%{transform:translate(3%,3%)}100%{transform:translate(0,0)}}
+#black{position:fixed;inset:0;background:#000;z-index:45;opacity:0;pointer-events:none;transition:opacity .6s}
+body.blackout #black{opacity:1;pointer-events:auto}
+
+#hud{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;align-items:center;gap:22px;padding:14px 22px;
+  background:linear-gradient(0deg,rgba(0,0,0,.85),rgba(0,0,0,0));font:600 14px/1 var(--fb);color:#CFC7B9;
+  opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s}
+body.hud-on #hud,body.editing #hud{opacity:1;transform:none}
+#hud .info{min-width:260px;letter-spacing:.12em;text-transform:uppercase}
+#hud .info b{color:var(--gold)}
+#bar{flex:1;height:6px;border-radius:3px;background:#2B2824;cursor:pointer;position:relative}
+#bar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--gold)}
+#hud button{font:600 14px/1 var(--fb);color:#E8E1D4;background:#1E1C19;border:1px solid #3A362F;border-radius:8px;padding:9px 12px;cursor:pointer}
+#hud button:hover{border-color:var(--gold);color:#fff}
+#hud button.on{background:var(--gold);color:#120F0A;border-color:var(--gold)}
+#help,#edit-tip{position:fixed;z-index:70;font:500 16px/1.55 var(--fb);color:#E8E1D4;background:rgba(18,16,14,.96);border:1px solid #3A362F;border-radius:14px}
+#help{left:50%;top:50%;transform:translate(-50%,-50%);padding:28px 34px;width:min(620px,92vw);display:none}
+#help.show{display:block}
+#help h4{font:700 20px/1 var(--fd);letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 16px}
+#help table{margin:0}
+#help td{font:500 15px/1.4 var(--fb);padding:6px 10px 6px 0;border:0}
+#help td:first-child{color:var(--gold);white-space:nowrap;font-weight:700}
+#edit-tip{left:50%;top:14px;transform:translateX(-50%);padding:10px 18px;display:none;font-size:14px}
+body.editing #edit-tip{display:block}
+body.editing [contenteditable]{outline:1px dashed rgba(231,178,74,.45);outline-offset:4px;cursor:text}
+body.editing [contenteditable]:focus{outline:2px solid var(--gold)}
+body.editing .photo{cursor:pointer}
+body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
+.photo.drag{box-shadow:inset 0 0 0 4px var(--green)!important}
+
+@media (prefers-reduced-motion:reduce){
+  #grain,.beam,.marq,.sign,.slate span:first-child::before{animation:none}
+  .rv{transition-duration:.01s;transition-delay:0s!important}
+}
+@page{size:1920px 1080px;margin:0}
+@media print{
+  html,body{overflow:visible;height:auto;background:#000}
+  #stage{position:static;transform:none!important;width:1920px;height:auto;overflow:visible}
+  .slide{position:relative;width:1920px;height:1080px;opacity:1!important;visibility:visible!important;break-after:page;transition:none}
+  .rv{opacity:1;transform:none;transition:none}
+  .leader,#grain,#hud,#help,#edit-tip,#black{display:none!important}
+  .credits .roll{display:none} .credits .wrap{opacity:1;animation:none}
+  .slate span:first-child::before{animation:none}
+}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- ============ ПРОЛОГ ============ -->
+<section class="slide cover" data-act="Пролог" data-noslate>
+  <div class="beam"></div>
+  <div class="leader" aria-hidden="true"><div class="ring"><div class="sweep"></div><span class="n n3">3</span><span class="n n2">2</span><span class="n n1">1</span></div></div>
+  <div class="cover-in">
+    <p class="presents rv">Домклик · Волго-Вятский банк<br><span>представляет</span></p>
+    <h1 class="rv" style="--i:1">Стратегическая<br>сессия руководителей</h1>
+    <p class="tagline rv" style="--i:2">4 квартал. В главных ролях — команда ВВБ.</p>
+    <div class="billing rv" style="--i:3">
+      <p>Награждение<b>·</b>Драйверы и лучшие практики<b>·</b>Развилка 4 квартала<b>·</b>Командная работа</p>
+      <p>В ролях: <span>Мария Шачкова · Наталья Шереметьева · Арина Кирюшина · Максим Павлов · Петр Пеньковский · Ирина Ягунова</span></p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-act="Пролог">
+  <header class="hd rv"><p class="kicker">Пролог</p><h2>В программе сеанса</h2></header>
+  <div class="strip rv" style="--i:1">
+    <div class="frames">
+      <div class="frame"><p class="act-l">АКТ I</p><h3>Награждение</h3><p>ЕКП · КПЭ · лучшие сотрудники</p></div>
+      <div class="frame"><p class="act-l">АКТ II</p><h3>Драйверы и практики</h3><p>Доп. ОД · неипотека · Татарстан · Удмуртия</p></div>
+      <div class="frame"><p class="act-l">АКТ III</p><h3>Развилка</h3><p>Итоги 3 квартала и выбор: ТОП 1 или ТОП 3 / 33%</p></div>
+      <div class="frame"><p class="act-l">АКТ IV</p><h3>Команда</h3><p>Идеи на 4 квартал · старт 2027 · коллеги КИБ</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ АКТ I ============ -->
+<section class="slide act" data-act="Акт I · Награждение">
+  <div class="beam"></div>
+  <div class="act-num" aria-hidden="true">I</div>
+  <p class="kicker rv">Акт первый</p>
+  <h2 class="act-title rv" style="--i:1">Церемония награждения</h2>
+  <p class="act-sub rv" style="--i:2">Лучшие территории (ГОСБ) и лучшие сотрудники</p>
+</section>
+
+<section class="slide" data-act="Акт I · Награждение">
+  <header class="hd rv"><p class="kicker">Номинация · ЕКП</p><h2>Первые места в своих кластерах</h2></header>
+  <div class="winners">
+    <figure class="win rv" style="--i:1"><div class="photo" data-label="Фото руководителя"></div>
+      <figcaption><span class="chip gold">★ 1 место в кластере</span><h3>Банк Татарстан</h3><p class="ph">[ФИО руководителя]</p></figcaption></figure>
+    <figure class="win rv" style="--i:2"><div class="photo" data-label="Фото руководителя"></div>
+      <figcaption><span class="chip gold">★ 1 место в кластере</span><h3>Мордовское ГОСБ</h3><p class="ph">[ФИО руководителя]</p></figcaption></figure>
+    <figure class="win rv" style="--i:3"><div class="photo" data-label="Фото руководителя"></div>
+      <figcaption><span class="chip gold">★ 1 место в кластере</span><h3>ГОСБ Марий Эл</h3><p class="ph">[ФИО руководителя]</p></figcaption></figure>
+  </div>
+</section>
+
+<section class="slide" data-act="Акт I · Награждение">
+  <header class="hd rv"><p class="kicker">Номинация · КПЭ</p><h2>ТОП-3 ГОСБ по выполнению показателей ВВБ</h2></header>
+  <div class="podium">
+    <div class="pcol rv" style="--i:2"><div class="photo round" style="--m:var(--silver)" data-label="Фото"></div><h3>Мордовское ГОСБ</h3><div class="step r2" style="--i:2"><b>2</b><span>ранг</span></div></div>
+    <div class="pcol rv" style="--i:0"><div class="photo round" data-label="Фото"></div><h3>Кировское ГОСБ</h3><div class="step r1" style="--i:0"><b>1</b><span>ранг</span></div></div>
+    <div class="pcol rv" style="--i:1"><div class="photo round" data-label="Фото"></div><h3>ГОСБ Марий Эл</h3><div class="step r1" style="--i:1"><b>1</b><span>ранг</span></div></div>
+    <div class="pcol rv" style="--i:3"><div class="photo round" style="--m:var(--bronze)" data-label="Фото"></div><h3>Чувашское ГОСБ</h3><div class="step r3" style="--i:3"><b>3</b><span>ранг</span></div></div>
+  </div>
+</section>
+
+<section class="slide" data-act="Акт I · Награждение">
+  <header class="hd rv"><p class="kicker">Номинация · Лучшие роли</p><h2>Лучшие сотрудники</h2></header>
+  <div class="winners roles">
+    <figure class="win rv" style="--i:1"><p class="role-tag">МРП</p><div class="photo" data-label="Фото сотрудника"></div>
+      <figcaption><h3>Алексей Кокель</h3><p class="sub">Чувашское ГОСБ</p></figcaption></figure>
+    <figure class="win rv" style="--i:2"><p class="role-tag">РОДК</p><div class="photo" data-label="Фото сотрудника"></div>
+      <figcaption><h3 class="ph">[Имя Фамилия]</h3><p class="sub ph">[ГОСБ]</p></figcaption></figure>
+    <figure class="win rv" style="--i:3"><p class="role-tag">КМ ДК</p><div class="photo" data-label="Фото сотрудника"></div>
+      <figcaption><h3 class="ph">[Имя Фамилия]</h3><p class="sub ph">[ГОСБ]</p></figcaption></figure>
+  </div>
+</section>
+
+<!-- ============ АКТ II ============ -->
+<section class="slide act" data-act="Акт II · Драйверы и практики">
+  <div class="beam"></div>
+  <div class="act-num" aria-hidden="true">II</div>
+  <p class="kicker rv">Акт второй</p>
+  <h2 class="act-title rv" style="--i:1">Драйверы и практики</h2>
+  <p class="act-sub rv" style="--i:2">Как считается Доп. ОД, что даст неипотека и как это сделали Татарстан и Удмуртия</p>
+</section>
+
+<section class="slide speaker" data-act="Акт II · Драйверы и практики">
+  <div>
+    <p class="kicker rv">Акт II · Мастер-класс</p>
+    <h2 class="rv" style="--i:1">Доп. ОД:<br>как считается</h2>
+  </div>
+  <figure class="sp-photo rv" style="--i:2"><div class="photo" data-label="Фото спикера"></div>
+    <figcaption><span>Спикер</span><b class="e">Мария Шачкова</b></figcaption></figure>
+</section>
+
+<section class="slide" data-act="Акт II · Драйверы и практики">
+  <header class="hd rv"><p class="kicker">Акт II · Неипотека</p><h2>Драйверы 4 квартала</h2><p class="lead">Сколько нам даст каждый драйвер</p></header>
+  <div class="drivers">
+    <div class="drv rv" style="--i:1"><p class="no">ЛИНИЯ 01</p><h3>Прирост аккредитивов и СБР</h3><p class="val ph">+[__]</p><p class="cap">вклад в неипотеку</p></div>
+    <div class="drv rv" style="--i:2"><p class="no">ЛИНИЯ 02</p><h3>Увеличение среднего чека</h3><p class="val ph">+[__]</p><p class="cap">вклад в неипотеку</p></div>
+    <div class="drv rv" style="--i:3"><p class="no">ЛИНИЯ 03</p><h3>Увеличение проникновения СсГ</h3><p class="val ph">+[__]</p><p class="cap">вклад в неипотеку</p></div>
+  </div>
+  <div class="total rv" style="--i:4"><h3>Итого потенциал</h3><p class="ph">+[__]</p></div>
+</section>
+
+<section class="slide speaker tatar" data-act="Акт II · Драйверы и практики">
+  <div>
+    <p class="kicker rv">Акт II · История успеха</p>
+    <h2 class="rv" style="--i:1">Лучшие практики Татарстана</h2>
+    <div class="questions">
+      <div class="q rv" style="--i:2"><b>01</b><p>Что помогло сделать неипотеку?</p></div>
+      <div class="q rv" style="--i:3"><b>02</b><p>Что поменяли?</p></div>
+    </div>
+  </div>
+  <div class="duo">
+    <figure class="rv" style="--i:2"><div class="photo" data-label="Фото спикера"></div><figcaption><span>Спикер</span><b class="e">Наталья Шереметьева</b></figcaption></figure>
+    <figure class="rv" style="--i:3"><div class="photo" data-label="Фото спикера"></div><figcaption><span>Спикер</span><b class="e">Арина Кирюшина</b></figcaption></figure>
+  </div>
+</section>
+
+<section class="slide speaker" data-act="Акт II · Драйверы и практики">
+  <div>
+    <p class="kicker rv">Акт II · РКиСП</p>
+    <h2 class="rv" style="--i:1">Успех Удмуртского ГОСБ 2025</h2>
+    <p class="lead rv" style="--i:2">РКиСП. Лучшие практики.</p>
+  </div>
+  <figure class="sp-photo rv" style="--i:2"><div class="photo" data-label="Фото спикера"></div>
+    <figcaption><span>Спикер</span><b class="e">Максим Павлов</b></figcaption></figure>
+</section>
+
+<!-- ============ АКТ III ============ -->
+<section class="slide speaker act3" data-act="Акт III · Развилка">
+  <div class="beam"></div>
+  <div>
+    <p class="mini-num rv" aria-hidden="true">III</p>
+    <p class="kicker rv" style="--i:1">Акт третий</p>
+    <h2 class="rv" style="--i:2">Куда пойдём в 4 квартале</h2>
+    <p class="choice rv" style="--i:3">ТОП 1 или ТОП 3 / 33%</p>
+  </div>
+  <figure class="sp-photo rv" style="--i:2"><div class="photo" data-label="Фото спикера"></div>
+    <figcaption><span>Спикер</span><b class="e">Петр Пеньковский</b></figcaption></figure>
+</section>
+
+<section class="slide" data-act="Акт III · Развилка">
+  <header class="hd rv"><p class="kicker">Акт III · Кассовые сборы</p><h2>Итоги 3 квартала</h2></header>
+  <div class="marquee">
+    <div class="marq rv" style="--i:1"><div class="in"><p class="lab">ЕКП</p><p class="v green">ТОП 1</p></div></div>
+    <div class="marq rv" style="--i:2"><div class="in"><p class="lab">КПЭ</p><p class="v green">ТОП 1</p></div></div>
+    <div class="marq rv" style="--i:3"><div class="in"><p class="lab">Выдача ЖК</p><p class="v green">ТОП 1</p></div></div>
+    <div class="marq rv" style="--i:4"><div class="in"><p class="lab">Динамика ОД</p><p class="v">5 ранг</p></div></div>
+    <div class="marq rv" style="--i:5"><div class="in"><p class="lab">Доп. ОД</p><p class="v gold count">142%</p></div></div>
+  </div>
+</section>
+
+<section class="slide" data-act="Акт III · Развилка">
+  <header class="hd rv"><p class="kicker">Акт III · Итоги 3 квартала: где недобрали</p><h2>ТБ — ТОП 3, ГОСБ — ТОП 33%</h2></header>
+  <table class="rv" style="--i:1">
+    <tr><th>Показатель</th><th class="n">Факт</th><th class="n">Цель</th><th class="n">Итог</th></tr>
+    <tr><td>Доля высокомаржинальных продуктов</td><td class="n coral">7 ранг</td><td class="n">3 ранг</td><td class="n"><span class="st coral">ниже цели</span></td></tr>
+    <tr><td>Проникновение СБР + Аккредитив</td><td class="n coral">9 ранг</td><td class="n">3 ранг</td><td class="n"><span class="st coral">ниже цели</span></td></tr>
+    <tr><td>Кроссы на сделку</td><td class="n coral">3 ранг</td><td class="n">1 ранг</td><td class="n"><span class="st coral">ниже цели</span></td></tr>
+    <tr><td>Эффективность задач</td><td class="n coral">46%</td><td class="n">52%</td><td class="n"><span class="st coral">ниже цели</span></td></tr>
+    <tr><td>Проникновение СсГ</td><td class="n coral">3,8%</td><td class="n">10%</td><td class="n"><span class="st coral">ниже цели</span></td></tr>
+    <tr class="hit"><td>Проникновение РПС</td><td class="n green">67%</td><td class="n">60%</td><td class="n"><span class="st green">выше цели</span></td></tr>
+  </table>
+</section>
+
+<section class="slide spoiler" data-act="Акт III · Развилка">
+  <header class="hd rv"><p class="kicker coral">Акт III · Спойлер</p><h2>Текущее выполнение <em>не приведёт</em> ТБ в ТОП 1</h2></header>
+  <div class="proj">
+    <p class="lead rv" style="--i:1">При текущей динамике:</p>
+    <div class="tiles">
+      <div class="tile rv" style="--i:2"><p class="lab">ЕКП</p><p class="v">ТОП 3</p></div>
+      <div class="tile rv" style="--i:3"><p class="lab">Динамика ОД</p><p class="v">ТОП 5</p></div>
+      <div class="tile rv" style="--i:4"><p class="lab">Выдача ЖК</p><p class="v">ТОП 3</p></div>
+      <div class="tile rv" style="--i:5"><p class="lab">Доп. ОД</p><p class="v count">100%</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-act="Акт III · Развилка">
+  <header class="hd rv"><p class="kicker">Акт III · Выбор</p><h2>Куда идём?</h2></header>
+  <div class="fork">
+    <svg viewBox="0 0 1640 620" aria-label="Развилка: от точки «4 квартал» две дороги — к финалу А и к финалу Б">
+      <defs>
+        <marker id="ma" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="#E7B24A" style="stroke:none"/></marker>
+        <marker id="mb" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="#A3B6C8" style="stroke:none"/></marker>
+      </defs>
+      <path class="a" d="M300 310 C 620 310, 680 127, 975 127" stroke="#E7B24A" marker-end="url(#ma)"/>
+      <path class="b" d="M300 310 C 620 310, 680 502, 975 502" stroke="#A3B6C8" marker-end="url(#mb)"/>
+    </svg>
+    <div class="node rv" style="--i:1"><p>Мы здесь</p><p>4 квартал</p></div>
+    <div class="end a rv" style="--i:3"><p class="lab">Финал А</p><h3>ТБ — ТОП 1</h3><p>ГОСБ — ТОП 1</p></div>
+    <div class="end b rv" style="--i:4"><p class="lab">Финал Б</p><h3>ТБ — ТОП 3</h3><p>ГОСБ — ТОП 33%</p></div>
+  </div>
+</section>
+
+<section class="slide" data-act="Акт III · Развилка">
+  <header class="hd rv"><p class="kicker">Акт III · Финал А</p><h2>Сценарий ТОП 1: что нужно ТБ</h2></header>
+  <div class="script rv" style="--i:1">
+    <p class="stamp">Финал А</p>
+    <p class="slug">ИНТ. ВОЛГО-ВЯТСКИЙ БАНК — 4 КВАРТАЛ</p>
+    <ol>
+      <li><b>СЦЕНА 1</b>ЕКП — ТОП 1</li>
+      <li><b>СЦЕНА 2</b>Каждое ГОСБ — ТОП 1 в своём кластере</li>
+      <li><b>СЦЕНА 3</b>Проникновение СБР + Аккредитив — ТОП 33%</li>
+      <li><b>СЦЕНА 4</b>Проникновение СсГ — не менее 8% в партнёрских заявках и не менее 10% в ЧМАК и ФЛ</li>
+      <li><b>СЦЕНА 5</b>Доля РПС — 120%</li>
+      <li><b>СЦЕНА 6</b>Кроссы — ТОП 1</li>
+      <li><b>СЦЕНА 7</b>Выдачи — ТОП 1</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ АКТ IV ============ -->
+<section class="slide act" data-act="Акт IV · Команда">
+  <div class="beam"></div>
+  <div class="act-num" aria-hidden="true">IV</div>
+  <p class="kicker rv">Акт четвёртый</p>
+  <h2 class="act-title rv" style="--i:1">Съёмочная группа</h2>
+  <p class="act-sub rv" style="--i:2">Командная работа: идеи на 4 квартал, старт 2027 и коллеги КИБ</p>
+</section>
+
+<section class="slide" data-act="Акт IV · Команда">
+  <header class="hd rv"><p class="kicker">Акт IV · Командная работа</p><h2>Что поможет в 4 квартале быть в ТОП</h2><p class="lead">Питчинг идей по формуле 1 + 2 + 1</p></header>
+  <div class="pitch">
+    <div class="clap rv" style="--i:1;--c:var(--gold)"><div class="bar"></div><div class="body"><p class="num">1</p><h3>идея для ЦА</h3></div></div>
+    <div class="clap rv" style="--i:2;--c:var(--green)"><div class="bar"></div><div class="body"><p class="num">2</p><h3>быстрореализуемые идеи на уровне ГОСБ</h3><p>то, на что я могу повлиять</p></div></div>
+    <div class="clap rv" style="--i:3;--c:var(--steel)"><div class="bar"></div><div class="body"><p class="num">1</p><h3>идея для применения агента в работе</h3></div></div>
+  </div>
+</section>
+
+<section class="slide center" data-act="Акт IV · Команда" data-noslate>
+  <div class="beam"></div>
+  <div class="sign rv"><div class="in">
+    <p class="kicker">Старт 2027</p>
+    <h2>КИНО</h2>
+    <p class="q2">оставляем?</p>
+  </div></div>
+</section>
+
+<section class="slide speaker" data-act="Акт IV · Команда">
+  <div>
+    <p class="kicker rv">Акт IV · В гостях</p>
+    <h2 class="rv" style="--i:1">Коллеги КИБ</h2>
+  </div>
+  <figure class="sp-photo rv" style="--i:2"><div class="photo" data-label="Фото спикера"></div>
+    <figcaption><span>Спикер</span><b class="e">Ирина Ягунова</b></figcaption></figure>
+</section>
+
+<section class="slide" data-act="Акт IV · Команда" data-noslate>
+  <div class="facts">
+    <div class="fact rv" style="--i:0;--c:var(--gold)"><div class="dial"><svg viewBox="0 0 420 420" aria-hidden="true"><circle class="bg" cx="210" cy="210" r="180"/><circle class="fg" cx="210" cy="210" r="180"/></svg><p class="val count">73%</p></div><h3>Доля ЕГРН</h3></div>
+    <div class="fact rv" style="--i:1;--c:var(--green)"><div class="dial"><svg viewBox="0 0 420 420" aria-hidden="true"><circle class="bg" cx="210" cy="210" r="180"/><circle class="fg" cx="210" cy="210" r="180"/></svg><p class="val count">86%</p></div><h3>Доля ЕГРН с ПФ</h3></div>
+    <div class="fact rv" style="--i:2;--c:var(--steel)"><div class="dial"><svg viewBox="0 0 420 420" aria-hidden="true"><circle class="bg" cx="210" cy="210" r="180"/><circle class="fg" cx="210" cy="210" r="180"/></svg><p class="val count">60%</p></div><h3>Доля ЕГРН без ПФ</h3></div>
+  </div>
+</section>
+
+<!-- ============ ТИТРЫ ============ -->
+<section class="slide credits" data-act="Финал" data-noslate>
+  <div class="roll">
+    <p class="t1">Домклик · Волго-Вятский банк</p>
+    <p class="t2">Стратегическая сессия руководителей</p>
+    <div class="cr"><h4>Церемония награждения</h4>
+      <div class="row"><p>ЕКП · 1 место в кластере</p><p>Банк Татарстан</p></div>
+      <div class="row"><p></p><p>Мордовское ГОСБ</p></div>
+      <div class="row"><p></p><p>ГОСБ Марий Эл</p></div>
+      <div class="row"><p>КПЭ · 1 ранг</p><p>Кировское ГОСБ</p></div>
+      <div class="row"><p></p><p>ГОСБ Марий Эл</p></div>
+      <div class="row"><p>КПЭ · 2 ранг</p><p>Мордовское ГОСБ</p></div>
+      <div class="row"><p>КПЭ · 3 ранг</p><p>Чувашское ГОСБ</p></div>
+      <div class="row"><p>Лучший МРП</p><p>Алексей Кокель</p></div>
+      <div class="row"><p>Лучший РОДК</p><p class="ph">[Имя Фамилия]</p></div>
+      <div class="row"><p>Лучший КМ ДК</p><p class="ph">[Имя Фамилия]</p></div>
+    </div>
+    <div class="cr"><h4>Спикеры</h4>
+      <div class="row"><p>Доп. ОД: как считается</p><p>Мария Шачкова</p></div>
+      <div class="row"><p>Лучшие практики Татарстана</p><p>Наталья Шереметьева</p></div>
+      <div class="row"><p></p><p>Арина Кирюшина</p></div>
+      <div class="row"><p>Успех Удмуртского ГОСБ 2025</p><p>Максим Павлов</p></div>
+      <div class="row"><p>Куда пойдём в 4 квартале</p><p>Петр Пеньковский</p></div>
+      <div class="row"><p>Коллеги КИБ</p><p>Ирина Ягунова</p></div>
+    </div>
+    <div class="cr"><h4>В главных ролях</h4>
+      <div class="row"><p>4 квартал</p><p>Команда ВВБ</p></div>
+    </div>
+  </div>
+  <div class="wrap"><h2>Снято!</h2><p>Стратегическая сессия руководителей · Домклик ВВБ</p></div>
+</section>
+
+</div>
+
+<div id="grain" aria-hidden="true"></div>
+<div id="black" aria-hidden="true"></div>
+<div id="edit-tip">Режим правки: кликните по тексту, чтобы изменить его; по рамке фото — чтобы вставить снимок (или перетащите файл). Двойной клик по фото — убрать. <b>Ctrl+S</b> — сохранить копию, <b>Esc</b> — выйти.</div>
+<div id="help" role="dialog" aria-label="Управление">
+  <h4>Управление</h4>
+  <table>
+    <tr><td>→ · Пробел · клик</td><td>следующий слайд</td></tr>
+    <tr><td>← · Backspace</td><td>предыдущий слайд</td></tr>
+    <tr><td>Home · End</td><td>первый · последний</td></tr>
+    <tr><td>F</td><td>полный экран</td></tr>
+    <tr><td>B</td><td>затемнение экрана</td></tr>
+    <tr><td>E</td><td>режим правки: тексты и фото</td></tr>
+    <tr><td>Ctrl+S</td><td>сохранить копию файла с правками и фото</td></tr>
+    <tr><td>Ctrl+P</td><td>печать или PDF (слайд на страницу)</td></tr>
+    <tr><td>H · ?</td><td>эта подсказка</td></tr>
+  </table>
+</div>
+<div id="hud">
+  <div class="info" id="info"></div>
+  <button id="prev" title="Назад (←)">◀</button>
+  <div id="bar"><i id="fill"></i></div>
+  <button id="next" title="Вперёд (→)">▶</button>
+  <button id="btn-edit" title="Режим правки (E)">✎ Правка</button>
+  <button id="btn-save" title="Сохранить копию (Ctrl+S)">⤓ Сохранить</button>
+  <button id="btn-fs" title="Полный экран (F)">⛶</button>
+  <button id="btn-help" title="Подсказка (H)">?</button>
+</div>
+<input type="file" id="file" accept="image/*" hidden>
+
+<script>
+(() => {
+  const stage = document.getElementById('stage');
+  const slides = [...document.querySelectorAll('.slide')];
+  const cover = slides[0];
+  const body = document.body;
+  const pad = n => String(n).padStart(2, '0');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let cur = -1, editing = false, dirty = false, intro = false;
+
+  // хлопушка-метка на слайдах
+  slides.forEach((s, i) => {
+    if (s.hasAttribute('data-noslate') || s.querySelector('.slate')) return;
+    const d = document.createElement('div');
+    d.className = 'slate';
+    d.innerHTML = `<span>Сцена ${pad(i + 1)}</span><span>${s.dataset.act || ''}</span>`;
+    s.prepend(d);
+  });
+  document.querySelectorAll('.count').forEach(el => { if (!el.dataset.final) el.dataset.final = el.textContent.trim(); });
+
+  function fit() {
+    const k = Math.min(innerWidth / 1920, innerHeight / 1080);
+    stage.style.transform = `translate(-50%,-50%) scale(${k})`;
+  }
+  addEventListener('resize', fit); fit();
+
+  function countUp(el) {
+    const m = el.dataset.final.match(/^(\D*)(\d+)(.*)$/);
+    if (!m || reduce) { el.textContent = el.dataset.final; return; }
+    const to = +m[2], t0 = performance.now(), dur = 1400;
+    const step = t => {
+      if (editing) { el.textContent = el.dataset.final; return; }
+      const p = Math.min(1, (t - t0 - 450) / dur);
+      const v = p <= 0 ? 0 : Math.round(to * (1 - Math.pow(1 - p, 3)));
+      el.textContent = m[1] + v + m[3];
+      if (p < 1) requestAnimationFrame(step); else el.textContent = el.dataset.final;
+    };
+    requestAnimationFrame(step);
+  }
+  function dials(s, on) {
+    s.querySelectorAll('.fact').forEach(f => {
+      const fg = f.querySelector('.fg'), val = f.querySelector('.val');
+      const pct = parseFloat((val.dataset.final || val.textContent).replace(',', '.')) || 0;
+      fg.style.strokeDashoffset = on ? 1131 * (1 - Math.min(pct, 100) / 100) : 1131;
+    });
+  }
+
+  function go(i) {
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    if (i === cur) return;
+    const prev = slides[cur];
+    if (prev) { prev.classList.remove('active', 'run'); dials(prev, false); }
+    cur = i;
+    const s = slides[i];
+    s.classList.add('active');
+    if (s.classList.contains('credits')) { void s.offsetWidth; s.classList.add('run'); }
+    s.querySelectorAll('.count').forEach(countUp);
+    requestAnimationFrame(() => dials(s, true));
+    history.replaceState(null, '', '#' + (i + 1));
+    document.getElementById('info').innerHTML = `<b>Сцена ${pad(i + 1)}</b> / ${pad(slides.length)} · ${s.dataset.act || ''}`;
+    document.getElementById('fill').style.width = ((i + 1) / slides.length * 100) + '%';
+  }
+  const next = () => go(cur + 1), prev = () => go(cur - 1);
+
+  function endIntro() { intro = false; cover.classList.remove('intro'); }
+
+  // ---------- правка ----------
+  const EDITABLE = '.slide h1,.slide h2,.slide h3,.slide h4,.slide p,.slide li,.slide td,.slide th,.slide .e';
+  function setEdit(on) {
+    editing = on;
+    body.classList.toggle('editing', on);
+    document.getElementById('btn-edit').classList.toggle('on', on);
+    document.querySelectorAll(EDITABLE).forEach(el => {
+      if (el.closest('.leader') || el.querySelector('p,h1,h2,h3,h4,li,table,div')) return;
+      if (on) el.setAttribute('contenteditable', 'true'); else el.removeAttribute('contenteditable');
+    });
+    if (on) { endIntro(); document.querySelectorAll('.count').forEach(el => el.textContent = el.dataset.final); }
+    else if (document.activeElement) document.activeElement.blur();
+  }
+  document.addEventListener('input', e => {
+    dirty = true;
+    const c = e.target.closest && e.target.closest('.count');
+    if (c) c.dataset.final = c.textContent.trim();
+  });
+
+  // ---------- фото ----------
+  const fileInput = document.getElementById('file');
+  let target = null;
+  function placeImage(photo, file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const max = 1400, k = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      photo.style.backgroundImage = `url(${c.toDataURL('image/jpeg', .86)})`;
+      photo.classList.add('has-img');
+      URL.revokeObjectURL(url); dirty = true;
+    };
+    img.src = url;
+  }
+  document.querySelectorAll('.photo').forEach(p => {
+    p.addEventListener('click', e => { if (!editing) return; e.stopPropagation(); target = p; fileInput.value = ''; fileInput.click(); });
+    p.addEventListener('dblclick', e => {
+      if (!editing || !p.classList.contains('has-img')) return;
+      e.stopPropagation(); p.style.backgroundImage = ''; p.classList.remove('has-img'); dirty = true;
+    });
+    p.addEventListener('dragover', e => { e.preventDefault(); p.classList.add('drag'); });
+    p.addEventListener('dragleave', () => p.classList.remove('drag'));
+    p.addEventListener('drop', e => { e.preventDefault(); p.classList.remove('drag'); placeImage(p, e.dataTransfer.files[0]); });
+  });
+  fileInput.addEventListener('change', () => { if (target) placeImage(target, fileInput.files[0]); });
+  addEventListener('dragover', e => e.preventDefault());
+  addEventListener('drop', e => e.preventDefault());
+
+  // ---------- сохранение копии ----------
+  async function save() {
+    const root = document.documentElement.cloneNode(true);
+    root.querySelectorAll('[contenteditable]').forEach(e => e.removeAttribute('contenteditable'));
+    root.querySelectorAll('.slate').forEach(e => e.remove());
+    root.querySelectorAll('.slide').forEach(s => s.classList.remove('active', 'run', 'intro'));
+    root.querySelectorAll('.count').forEach(e => e.textContent = e.dataset.final);
+    root.querySelectorAll('.fg').forEach(e => e.removeAttribute('style'));
+    root.querySelector('body').removeAttribute('class');
+    root.querySelector('#stage').removeAttribute('style');
+    const blob = new Blob(['<!DOCTYPE html>\n' + root.outerHTML], { type: 'text/html' });
+    const name = decodeURIComponent(location.pathname.split('/').pop() || 'presentation.html').replace(/\.html?$/i, '') + '-правки.html';
+    if (window.showSaveFilePicker) {
+      try {
+        const h = await showSaveFilePicker({ suggestedName: name, types: [{ description: 'HTML', accept: { 'text/html': ['.html'] } }] });
+        const w = await h.createWritable(); await w.write(blob); await w.close();
+        dirty = false; return;
+      } catch (err) { if (err.name === 'AbortError') return; }
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { a.remove(); URL.revokeObjectURL(a.href); }, 3000);
+    dirty = false;
+  }
+  addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+  // ---------- управление ----------
+  const help = document.getElementById('help');
+  const fs = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {});
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); save(); return; }
+    if (e.key === 'Escape') { help.classList.remove('show'); if (editing) setEdit(false); body.classList.remove('blackout'); return; }
+    if (editing) return;
+    if (intro) { endIntro(); e.preventDefault(); return; }
+    const k = e.key;
+    if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); next(); }
+    else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(k)) { e.preventDefault(); prev(); }
+    else if (k === 'Home') go(0);
+    else if (k === 'End') go(slides.length - 1);
+    else if (k === 'f' || k === 'F' || k === 'а' || k === 'А') fs();
+    else if (k === 'b' || k === 'B' || k === 'и' || k === 'И' || k === '.') body.classList.toggle('blackout');
+    else if (k === 'e' || k === 'E' || k === 'у' || k === 'У') setEdit(true);
+    else if (k === 'h' || k === 'H' || k === '?' || k === 'р' || k === 'Р') help.classList.toggle('show');
+  });
+  const hud = document.getElementById('hud');
+  stage.addEventListener('click', e => {
+    if (editing) return;
+    if (intro) { endIntro(); return; }
+    if (help.classList.contains('show')) { help.classList.remove('show'); return; }
+    e.clientX < innerWidth * 0.25 ? prev() : next();
+  });
+  document.getElementById('black').addEventListener('click', () => body.classList.remove('blackout'));
+  document.getElementById('prev').onclick = prev;
+  document.getElementById('next').onclick = next;
+  document.getElementById('btn-edit').onclick = () => setEdit(!editing);
+  document.getElementById('btn-save').onclick = save;
+  document.getElementById('btn-fs').onclick = fs;
+  document.getElementById('btn-help').onclick = () => help.classList.toggle('show');
+  document.getElementById('bar').onclick = e => {
+    const r = e.currentTarget.getBoundingClientRect();
+    go(Math.floor((e.clientX - r.left) / r.width * slides.length));
+  };
+  let hudT;
+  addEventListener('mousemove', () => { body.classList.add('hud-on'); clearTimeout(hudT); hudT = setTimeout(() => body.classList.remove('hud-on'), 2200); });
+  let tx = null;
+  addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  addEventListener('touchend', e => {
+    if (tx === null || editing) return;
+    const dx = e.changedTouches[0].clientX - tx; tx = null;
+    if (Math.abs(dx) > 50) dx < 0 ? next() : prev();
+  });
+  addEventListener('beforeprint', () => slides.forEach(s => dials(s, true)));
+  addEventListener('afterprint', () => slides.forEach((s, i) => i !== cur && dials(s, false)));
+
+  addEventListener('hashchange', () => go((parseInt(location.hash.slice(1), 10) || 1) - 1));
+
+  // ---------- старт ----------
+  const start = Math.max(0, (parseInt(location.hash.slice(1), 10) || 1) - 1);
+  if (start === 0 && !reduce) { intro = true; cover.classList.add('intro'); setTimeout(endIntro, 4300); }
+  go(start);
+})();
+</script>
+</body>
+</html>
