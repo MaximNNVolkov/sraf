@@ -106,11 +106,11 @@ h2{font:600 88px/1.02 var(--fd);text-transform:uppercase;letter-spacing:.005em}
 .strip::before,.strip::after{content:'';position:absolute;left:34px;right:34px;height:22px;
   background:repeating-linear-gradient(90deg,#D9D1C2 0 24px,transparent 24px 56px);opacity:.75;border-radius:3px}
 .strip::before{top:20px} .strip::after{bottom:20px}
-.frames{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
-.frame{background:linear-gradient(180deg,#221F1A,#131210);border-radius:6px;padding:40px 34px 44px;min-height:400px;display:flex;flex-direction:column}
+.frames{display:grid;grid-template-columns:repeat(5,1fr);gap:22px}
+.frame{background:linear-gradient(180deg,#221F1A,#131210);border-radius:6px;padding:40px 28px 44px;min-height:400px;display:flex;flex-direction:column}
 .frame .act-l{font:600 32px/1 var(--fd);letter-spacing:.12em;color:var(--gold)}
-.frame h3{font:600 56px/1.02 var(--fd);text-transform:uppercase;margin:22px 0 auto}
-.frame p{font:500 25px/1.45 var(--fb);color:var(--dim);margin-top:30px}
+.frame h3{font:600 48px/1.04 var(--fd);text-transform:uppercase;margin:22px 0 auto}
+.frame p{font:500 23px/1.45 var(--fb);color:var(--dim);margin-top:30px}
 
 /* ---------- акты ---------- */
 .act{justify-content:center}
@@ -161,6 +161,8 @@ figure{margin:0}
 .tatar{grid-template-columns:1fr 1010px;column-gap:90px}
 .duo{display:grid;grid-template-columns:1fr 1fr;gap:40px}
 .duo .photo{height:580px}
+.std{grid-template-columns:minmax(0,1fr) 1010px}
+.std h2{font-size:76px}
 .act3 .mini-num{font:400 220px/.85 var(--fs);color:transparent;-webkit-text-stroke:3px rgba(231,178,74,.55);margin-bottom:26px}
 .act3 .choice{font:600 60px/1.1 var(--fd);color:var(--gold);text-transform:uppercase;margin-top:30px}
 
@@ -267,7 +269,7 @@ tr.hit td{background:rgba(60,203,123,.07)}
 /* ---------- титры ---------- */
 .credits{padding:0;overflow:hidden}
 .roll{position:absolute;left:0;right:0;top:100%;text-align:center}
-.credits.run .roll{animation:roll 30s linear forwards}
+.credits.run .roll{animation:roll 44s linear forwards}
 @keyframes roll{from{transform:translateY(0)}to{transform:translateY(-100%) translateY(-1080px)}}
 .roll .t1{font:600 30px/1.4 var(--fb);letter-spacing:.34em;text-transform:uppercase;color:var(--gold)}
 .roll .t2{font:700 96px/1 var(--fd);text-transform:uppercase;margin:24px 0 140px}
@@ -276,8 +278,11 @@ tr.hit td{background:rgba(60,203,123,.07)}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:56px;margin-bottom:20px}
 .row p:first-child{text-align:right;font:500 30px/1.3 var(--fb);color:var(--dim)}
 .row p:last-child{text-align:left;font:600 38px/1.2 var(--fd);text-transform:uppercase}
+.cast{display:grid;grid-template-columns:repeat(2,auto);justify-content:center;column-gap:120px;row-gap:22px}
+.cast p{font:600 40px/1.2 var(--fd);text-transform:uppercase}
+.cast-end{font:italic 400 36px/1.3 var(--fs);color:var(--gold-soft);margin-top:44px}
 .wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0}
-.credits.run .wrap{animation:fadeIn 1.6s ease 28.5s forwards}
+.credits.run .wrap{animation:fadeIn 1.6s ease 42.5s forwards}
 @keyframes fadeIn{to{opacity:1}}
 .wrap h2{font:700 260px/1 var(--fd)}
 .wrap p{font:italic 400 44px/1.3 var(--fs);color:var(--gold-soft);margin-top:20px}
@@ -344,8 +349,8 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
     <h1 class="rv" style="--i:1">Стратегическая<br>сессия руководителей</h1>
     <p class="tagline rv" style="--i:2">4 квартал. В главных ролях — команда ВВБ.</p>
     <div class="billing rv" style="--i:3">
-      <p>Награждение<b>·</b>Драйверы и лучшие практики<b>·</b>Развилка 4 квартала<b>·</b>Командная работа</p>
-      <p>В ролях: <span>Мария Шачкова · Наталья Шереметьева · Арина Кирюшина · Максим Павлов · Петр Пеньковский · Ирина Ягунова</span></p>
+      <p>Награждение<b>·</b>Драйверы и лучшие практики<b>·</b>Развилка 4 квартала<b>·</b>Командная работа<b>·</b>Стандарт работы</p>
+      <p>В ролях: <span>Мария Шачкова · Наталья Шереметьева · Арина Кирюшина · Максим Павлов · Петр Пеньковский · Ирина Ягунова · Дина Дубровина · Марина Волкова</span></p>
     </div>
   </div>
 </section>
@@ -358,6 +363,7 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
       <div class="frame"><p class="act-l">АКТ II</p><h3>Драйверы и практики</h3><p>Доп. ОД · неипотека · Татарстан · Удмуртия</p></div>
       <div class="frame"><p class="act-l">АКТ III</p><h3>Развилка</h3><p>Итоги 3 квартала и выбор: ТОП 1 или ТОП 3 / 33%</p></div>
       <div class="frame"><p class="act-l">АКТ IV</p><h3>Команда</h3><p>Идеи на 4 квартал · старт 2027 · коллеги КИБ</p></div>
+      <div class="frame"><p class="act-l">АКТ V</p><h3>Стандарт работы</h3><p>Управленческий алгоритм · презентация проекта</p></div>
     </div>
   </div>
 </section>
@@ -478,7 +484,7 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
     <div class="marq rv" style="--i:2"><div class="in"><p class="lab">КПЭ</p><p class="v green">ТОП 1</p></div></div>
     <div class="marq rv" style="--i:3"><div class="in"><p class="lab">Выдача ЖК</p><p class="v green">ТОП 1</p></div></div>
     <div class="marq rv" style="--i:4"><div class="in"><p class="lab">Динамика ОД</p><p class="v">5 ранг</p></div></div>
-    <div class="marq rv" style="--i:5"><div class="in"><p class="lab">Доп. ОД</p><p class="v gold count">142%</p></div></div>
+    <div class="marq rv" style="--i:5"><div class="in"><p class="lab">Доп. ОД</p><p class="v green count">142%</p></div></div>
   </div>
 </section>
 
@@ -586,6 +592,38 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
   </div>
 </section>
 
+<!-- ============ АКТ V ============ -->
+<section class="slide act" data-act="Акт V · Стандарт работы">
+  <div class="beam"></div>
+  <div class="act-num" aria-hidden="true">V</div>
+  <p class="kicker rv">Акт пятый</p>
+  <h2 class="act-title rv" style="--i:1">Стандарт работы</h2>
+  <p class="act-sub rv" style="--i:2">Управленческий алгоритм и проект, по которым снимаем следующие сезоны</p>
+</section>
+
+<section class="slide speaker tatar std" data-act="Акт V · Стандарт работы">
+  <div>
+    <p class="kicker rv">Акт V · Алгоритм</p>
+    <h2 class="rv" style="--i:1">Управленческий алгоритм</h2>
+    <p class="lead rv" style="--i:2">Презентация управленческого алгоритма</p>
+  </div>
+  <div class="duo">
+    <figure class="rv" style="--i:2"><div class="photo" data-label="Фото спикера"></div><figcaption><span>Спикер</span><b class="e">Петр Пеньковский</b></figcaption></figure>
+    <figure class="rv" style="--i:3"><div class="photo" data-label="Фото спикера"></div><figcaption><span>Спикер</span><b class="e">Дина Дубровина</b></figcaption></figure>
+  </div>
+</section>
+
+<section class="slide speaker tatar std" data-act="Акт V · Стандарт работы">
+  <div>
+    <p class="kicker rv">Акт V · Премьера</p>
+    <h2 class="rv" style="--i:1">Презентация проекта</h2>
+  </div>
+  <div class="duo">
+    <figure class="rv" style="--i:2"><div class="photo" data-label="Фото спикера"></div><figcaption><span>Спикер</span><b class="e">Петр Пеньковский</b></figcaption></figure>
+    <figure class="rv" style="--i:3"><div class="photo" data-label="Фото спикера"></div><figcaption><span>Спикер</span><b class="e">Марина Волкова</b></figcaption></figure>
+  </div>
+</section>
+
 <!-- ============ ТИТРЫ ============ -->
 <section class="slide credits" data-act="Финал" data-noslate>
   <div class="roll">
@@ -610,9 +648,29 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
       <div class="row"><p>Успех Удмуртского ГОСБ 2025</p><p>Максим Павлов</p></div>
       <div class="row"><p>Куда пойдём в 4 квартале</p><p>Петр Пеньковский</p></div>
       <div class="row"><p>Коллеги КИБ</p><p>Ирина Ягунова</p></div>
+      <div class="row"><p>Управленческий алгоритм</p><p>Петр Пеньковский</p></div>
+      <div class="row"><p></p><p>Дина Дубровина</p></div>
+      <div class="row"><p>Презентация проекта</p><p>Петр Пеньковский</p></div>
+      <div class="row"><p></p><p>Марина Волкова</p></div>
     </div>
     <div class="cr"><h4>В главных ролях</h4>
-      <div class="row"><p>4 квартал</p><p>Команда ВВБ</p></div>
+      <div class="cast">
+        <p>Марина Волкова</p>
+        <p>Дина Дубровина</p>
+        <p>Артем Тюлин</p>
+        <p>Юлия Чапрак</p>
+        <p>Надежда Кобякина</p>
+        <p>Дмитрий Дворников</p>
+        <p>Яна Мухина</p>
+        <p>Алексей Костин</p>
+        <p>Ирина Змеева</p>
+        <p>Ольга Снегирева</p>
+        <p>Алексей Аливанов</p>
+        <p>Татьяна Останина</p>
+        <p>Артем Гаркушенко</p>
+        <p>Ирина Саулина</p>
+      </div>
+      <p class="cast-end">и вся команда ВВБ</p>
     </div>
   </div>
   <div class="wrap"><h2>Снято!</h2><p>Стратегическая сессия руководителей · Домклик ВВБ</p></div>
