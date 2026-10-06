@@ -331,6 +331,14 @@ body.editing #edit-tip{display:block}
 body.editing [contenteditable]{outline:1px dashed rgba(231,178,74,.45);outline-offset:4px;cursor:text}
 body.editing [contenteditable]:focus{outline:2px solid var(--gold)}
 body.editing .photo{cursor:pointer}
+/* в режиме правки титры стоят на месте и листаются колесом мыши */
+body.editing .credits{overflow-y:auto}
+body.editing .credits .roll{position:relative;top:0;animation:none!important;transform:none;padding:110px 0 20px}
+body.editing .credits .wrap{position:relative;inset:auto;opacity:1;animation:none!important;padding:40px 0 140px}
+.cr-add{display:none}
+body.editing .cr-add{display:inline-block;margin-top:10px;font:700 20px/1 var(--fb);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold);background:transparent;border:1px dashed rgba(231,178,74,.6);border-radius:8px;padding:14px 26px;cursor:pointer}
+body.editing .cr-add:hover{background:rgba(231,178,74,.12)}
 body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
 .photo.drag{box-shadow:inset 0 0 0 4px var(--green)!important}
 
@@ -696,7 +704,7 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
 
 <div id="grain" aria-hidden="true"></div>
 <div id="black" aria-hidden="true"></div>
-<div id="edit-tip">Режим правки: кликните по тексту, чтобы изменить его; по рамке фото — чтобы вставить снимок (или перетащите файл). Двойной клик по фото — убрать. <b>Ctrl+S</b> — сохранить копию, <b>Esc</b> — выйти.</div>
+<div id="edit-tip">Режим правки: кликните по тексту, чтобы изменить его; по рамке фото — чтобы вставить снимок (или перетащите файл). Двойной клик по фото — убрать. Титры в режиме правки стоят на месте: листайте колесом мыши, «+ добавить строку» — новое имя; пустые строки удалятся сами. <b>Ctrl+S</b> — сохранить копию, <b>Esc</b> — выйти.</div>
 <div id="help" role="dialog" aria-label="Управление">
   <h4>Управление</h4>
   <table>
@@ -813,8 +821,41 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
       if (on) el.setAttribute('contenteditable', 'true'); else el.removeAttribute('contenteditable');
     });
     if (on) { endIntro(); document.querySelectorAll('.count').forEach(el => el.textContent = el.dataset.final); }
-    else if (document.activeElement) document.activeElement.blur();
+    else {
+      if (document.activeElement) document.activeElement.blur();
+      tidyCredits(document);
+      const s = slides[cur];
+      if (s && s.classList.contains('credits')) { s.scrollTop = 0; s.classList.remove('run'); void s.offsetWidth; s.classList.add('run'); }
+    }
   }
+  // Титры: кнопка «+ строка» в каждом блоке (видна только в режиме правки)
+  const NEW_NAME = 'Имя Фамилия';
+  function tidyCredits(root) {
+    root.querySelectorAll('.cast p').forEach(p => { if (!p.textContent.trim()) p.remove(); });
+    root.querySelectorAll('.cr .row').forEach(r => { if (![...r.children].some(p => p.textContent.trim())) r.remove(); });
+  }
+  document.querySelectorAll('.credits .cr').forEach(cr => {
+    const b = document.createElement('button');
+    b.className = 'cr-add'; b.type = 'button'; b.textContent = '+ добавить строку';
+    b.onclick = e => {
+      e.stopPropagation();
+      const cast = cr.querySelector('.cast');
+      let el, focus;
+      if (cast) { el = document.createElement('p'); el.textContent = NEW_NAME; cast.appendChild(el); focus = el; }
+      else {
+        const rows = cr.querySelectorAll('.row');
+        el = rows[rows.length - 1].cloneNode(true);
+        el.children[0].textContent = ''; el.children[1].textContent = NEW_NAME; el.children[1].classList.remove('ph');
+        rows[rows.length - 1].after(el); focus = el.children[1];
+      }
+      [...(cast ? [el] : el.children)].forEach(p => p.setAttribute('contenteditable', 'true'));
+      focus.focus();
+      const r = document.createRange(); r.selectNodeContents(focus);
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      dirty = true;
+    };
+    cr.appendChild(b);
+  });
   document.addEventListener('input', e => {
     dirty = true;
     const c = e.target.closest && e.target.closest('.count');
@@ -856,7 +897,8 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
   async function save() {
     const root = document.documentElement.cloneNode(true);
     root.querySelectorAll('[contenteditable]').forEach(e => e.removeAttribute('contenteditable'));
-    root.querySelectorAll('.slate').forEach(e => e.remove());
+    root.querySelectorAll('.slate,.cr-add').forEach(e => e.remove());
+    tidyCredits(root);
     root.querySelectorAll('.slide').forEach(s => s.classList.remove('active', 'run', 'intro', 'standby', 'armed'));
     root.querySelectorAll('.count').forEach(e => e.textContent = e.dataset.final);
     root.querySelectorAll('.fg').forEach(e => e.removeAttribute('style'));
