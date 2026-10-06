@@ -370,6 +370,74 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
 .lv-m{font:700 52px/1 var(--fd);color:var(--green);margin-top:auto}
 .lv-m.ph,.sum.ph{color:var(--mute);text-decoration:none}
 .pot .total{margin-top:26px;padding-top:22px}
+/* ---------- конструктор слайдов ---------- */
+.free .blocks{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:safe center;gap:34px}
+.free .blocks.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:safe center;column-gap:50px}
+.free .blk{position:relative}
+.free .blk>*{margin-top:0;margin-bottom:0}
+.free .blk>.total{padding-top:26px}
+.free :is(.drivers,.tiles,.marquee,.facts,.pitch,.podium,.gal,.segs){grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+.free .segs{flex:none}
+.free .facts{gap:40px}
+.free .fact{--c:var(--tone,var(--gold))}
+.free .clap{--c:var(--tone,var(--gold))}
+.free .dial{width:min(420px,100%);height:auto;aspect-ratio:1}
+.free .questions{margin-top:0}
+.free .lead{margin-top:0}
+.blk[data-tone=gold]{--tone:var(--gold)} .blk[data-tone=green]{--tone:var(--green)}
+.blk[data-tone=coral]{--tone:var(--coral)} .blk[data-tone=steel]{--tone:var(--steel)} .blk[data-tone=ink]{--tone:var(--ink)}
+.blk[data-tone] :is(.drv .val,.drv .no,.tile .v,.marq .v,.total p,.seg-h .sum,.lv-m,.q b,.step b){color:var(--tone)}
+.blk[data-tone] :is(.tile,.seg){border-top-color:var(--tone)}
+.blk[data-tone] .step{--m:var(--tone)}
+.gal{display:grid;gap:34px}
+.gal .photo{height:430px}
+.gal figcaption{margin-top:20px;display:flex;flex-direction:column;gap:8px}
+.gal figcaption span{font:700 19px/1 var(--fb);letter-spacing:.32em;text-transform:uppercase;color:var(--gold)}
+.gal figcaption h3{font:600 44px/1.05 var(--fd);text-transform:uppercase}
+.gal figcaption p{font:500 26px/1.3 var(--fb);color:var(--dim)}
+.gal.round{justify-items:center;text-align:center}
+.gal.round .photo{width:240px;height:240px;border-radius:50%;box-shadow:0 0 0 3px var(--tone,var(--gold))}
+.gal.round .photo::before{display:none}
+.free .script{transform:none}
+.free .fork{height:620px}
+.blk-ctl,#kit,#btn-add{display:none}
+body.editing #btn-add{display:inline-block}
+body.editing .blk{outline:1px dashed rgba(163,182,200,.35);outline-offset:10px}
+body.editing .blk:hover{outline-color:var(--steel)}
+body.editing .blk-ctl{display:flex;position:absolute;right:-6px;top:-50px;z-index:5;gap:6px;opacity:0;transition:opacity .2s}
+body.editing .blk:hover>.blk-ctl,body.editing .blk:focus-within>.blk-ctl{opacity:1}
+.blk-ctl button{font:700 18px/1 var(--fb);color:#E8E1D4;background:#1E1C19;border:1px solid #3A362F;border-radius:8px;padding:9px 13px;cursor:pointer;white-space:nowrap}
+.blk-ctl button:hover{border-color:var(--gold);color:#fff}
+.blk-ctl button.del:hover{border-color:var(--coral);color:var(--coral)}
+body.editing .free .blocks:empty::before{content:'Пустой слайд — добавьте элементы панелью внизу';margin:auto;font:italic 400 40px/1.3 var(--fs);color:var(--mute)}
+body.editing.on-free #kit{display:flex}
+#kit{position:fixed;left:50%;bottom:74px;transform:translateX(-50%);z-index:65;flex-wrap:wrap;justify-content:center;gap:8px;
+  width:min(1180px,96vw);padding:14px 16px;background:rgba(18,16,14,.96);border:1px solid #3A362F;border-radius:14px;font:600 14px/1 var(--fb);color:#CFC7B9}
+#kit .t{width:100%;text-align:center;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-size:12px;margin-bottom:4px}
+#kit button{font:600 14px/1 var(--fb);color:#E8E1D4;background:#1E1C19;border:1px solid #3A362F;border-radius:8px;padding:9px 12px;cursor:pointer}
+#kit button:hover{border-color:var(--gold);color:#fff}
+#kit .sep{width:1px;background:#3A362F;margin:0 4px}
+#kit button.del:hover{border-color:var(--coral);color:var(--coral)}
+body.editing.on-free #kit.min{width:auto} #kit.min button:not(.keep),#kit.min .t,#kit.min .sep{display:none}
+/* в конструкторе размеры подстраиваются под ширину карточки */
+.free :is(.drv,.tile,.marq .in,.seg,.clap .body,.pcol){container-type:inline-size}
+.free .blocks.two :is(.drv,.tile){padding:26px 24px}
+.free .drv .no{font-size:min(28px,11cqi);white-space:nowrap}
+.free .drv h3{font-size:max(18px,min(36px,11cqi));min-height:0}
+.free .drv .val{font-size:min(110px,26cqi)}
+.free .tile .lab,.free .marq .lab{font-size:max(14px,min(24px,10cqi));letter-spacing:.06em}
+.free .tile .v{font-size:min(92px,32cqi)}
+.free .marq{height:360px}
+.free .marq .v{font-size:min(66px,26cqi)}
+.free .seg-h h3,.free .seg-h .sum{font-size:min(46px,10cqi)}
+.free .lv-k{font-size:min(56px,12cqi)}
+.free .lv-m{font-size:min(52px,11cqi)}
+.free .clap .num{font-size:min(150px,34cqi)}
+.free .pcol h3{font-size:min(40px,11cqi)}
+.free .blocks.two .marq{height:280px}
+body.editing.on-free #edit-tip{display:none}
+#kit{opacity:.55;transition:opacity .2s} #kit:hover,#kit:focus-within{opacity:1}
+@media print{#kit,.blk-ctl{display:none!important}}
 </style>
 </head>
 <body>
@@ -760,7 +828,7 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
 
 <div id="grain" aria-hidden="true"></div>
 <div id="black" aria-hidden="true"></div>
-<div id="edit-tip">Режим правки: кликните по тексту, чтобы изменить его; по рамке фото — чтобы вставить снимок (или перетащите файл). Двойной клик по фото — убрать. Титры в режиме правки стоят на месте: листайте колесом мыши, «+ добавить строку» — новое имя; пустые строки удалятся сами. <b>Ctrl+S</b> — сохранить копию, <b>Esc</b> — выйти.</div>
+<div id="edit-tip">Режим правки: кликните по тексту, чтобы изменить его; по рамке фото — чтобы вставить снимок (или перетащите файл). Двойной клик по фото — убрать. Титры в режиме правки стоят на месте: листайте колесом мыши, «+ добавить строку» — новое имя; пустые строки удалятся сами. «＋ Слайд» внизу — новый слайд-конструктор: заголовок и элементы из панели. <b>Ctrl+S</b> — сохранить копию, <b>Esc</b> — выйти.</div>
 <div id="help" role="dialog" aria-label="Управление">
   <h4>Управление</h4>
   <table>
@@ -770,6 +838,7 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
     <tr><td>F</td><td>полный экран</td></tr>
     <tr><td>B</td><td>затемнение экрана</td></tr>
     <tr><td>E</td><td>режим правки: тексты и фото</td></tr>
+    <tr><td>E → ＋ Слайд</td><td>новый слайд-конструктор после текущего</td></tr>
     <tr><td>Ctrl+S</td><td>сохранить копию файла с правками и фото</td></tr>
     <tr><td>Ctrl+P</td><td>печать или PDF (слайд на страницу)</td></tr>
     <tr><td>H · ?</td><td>эта подсказка</td></tr>
@@ -781,30 +850,58 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
   <div id="bar"><i id="fill"></i></div>
   <button id="next" title="Вперёд (→)">▶</button>
   <button id="btn-edit" title="Режим правки (E)">✎ Правка</button>
+  <button id="btn-add" title="Новый слайд-конструктор после текущего">＋ Слайд</button>
   <button id="btn-save" title="Сохранить копию (Ctrl+S)">⤓ Сохранить</button>
   <button id="btn-fs" title="Полный экран (F)">⛶</button>
   <button id="btn-help" title="Подсказка (H)">?</button>
+</div>
+<div id="kit" aria-label="Конструктор слайда">
+  <p class="t">Добавить на слайд</p>
+  <button data-add="lead">Текст</button>
+  <button data-add="segs">Блок информации</button>
+  <button data-add="drivers">Карточки с цифрами</button>
+  <button data-add="tiles">Плитки показателей</button>
+  <button data-add="marquee">Афиши</button>
+  <button data-add="table">Таблица</button>
+  <button data-add="facts">Круговые показатели</button>
+  <button data-add="questions">Вопросы</button>
+  <button data-add="gal">Фото с подписью</button>
+  <button data-add="speakers">Спикеры</button>
+  <button data-add="podium">Пьедестал</button>
+  <button data-add="pitch">Хлопушки</button>
+  <button data-add="script">Сценарий</button>
+  <button data-add="fork">Развилка</button>
+  <button data-add="total">Итог</button>
+  <span class="sep"></span>
+  <button data-kit="cols" class="keep" title="Элементы в одну или две колонки">▥ Колонки</button>
+  <button data-kit="del" class="del">🗑 Удалить слайд</button>
+  <button data-kit="min" class="keep" title="Свернуть панель">▾</button>
 </div>
 <input type="file" id="file" accept="image/*" hidden>
 
 <script>
 (() => {
   const stage = document.getElementById('stage');
-  const slides = [...document.querySelectorAll('.slide')];
+  let slides = [...document.querySelectorAll('.slide')];
   const cover = slides[0];
   const body = document.body;
   const pad = n => String(n).padStart(2, '0');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let cur = -1, editing = false, dirty = false, intro = false, standby = false;
 
-  // хлопушка-метка на слайдах
-  slides.forEach((s, i) => {
-    if (s.hasAttribute('data-noslate') || s.querySelector('.slate')) return;
-    const d = document.createElement('div');
-    d.className = 'slate';
-    d.innerHTML = `<span>Сцена ${pad(i + 1)}</span><span>${s.dataset.act || ''}</span>`;
-    s.prepend(d);
-  });
+  // хлопушка-метка на слайдах (пересчитывается, когда слайды добавляют или удаляют)
+  function reindex() {
+    slides = [...document.querySelectorAll('.slide')];
+    slides.forEach((s, i) => {
+      s.querySelectorAll(':scope > .slate').forEach(d => d.remove());
+      if (s.hasAttribute('data-noslate')) return;
+      const d = document.createElement('div');
+      d.className = 'slate';
+      d.innerHTML = `<span>Сцена ${pad(i + 1)}</span><span>${s.dataset.act || ''}</span>`;
+      s.prepend(d);
+    });
+  }
+  reindex();
   document.querySelectorAll('.count').forEach(el => { if (!el.dataset.final) el.dataset.final = el.textContent.trim(); });
 
   function fit() {
@@ -842,6 +939,8 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
     cur = i;
     const s = slides[i];
     s.classList.add('active');
+    body.classList.toggle('on-free', s.classList.contains('free'));
+    fitFree(s);
     if (s.classList.contains('credits')) { void s.offsetWidth; s.classList.add('run'); }
     s.querySelectorAll('.count').forEach(countUp);
     requestAnimationFrame(() => dials(s, true));
@@ -867,15 +966,18 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
   }
 
   // ---------- правка ----------
-  const EDITABLE = '.slide h1,.slide h2,.slide h3,.slide h4,.slide p,.slide li,.slide td,.slide th,.slide .e';
+  const EDITABLE = '.slide h1,.slide h2,.slide h3,.slide h4,.slide p,.slide li,.slide td,.slide th,.slide .e,.slide figcaption span,.slide .q b,.slide .step b';
+  function markEditable(root, on) {
+    root.querySelectorAll(EDITABLE).forEach(el => {
+      if (el.closest('.leader,.blk-ctl') || el.querySelector('p,h1,h2,h3,h4,li,table,div')) return;
+      if (on) el.setAttribute('contenteditable', 'true'); else el.removeAttribute('contenteditable');
+    });
+  }
   function setEdit(on) {
     editing = on;
     body.classList.toggle('editing', on);
     document.getElementById('btn-edit').classList.toggle('on', on);
-    document.querySelectorAll(EDITABLE).forEach(el => {
-      if (el.closest('.leader') || el.querySelector('p,h1,h2,h3,h4,li,table,div')) return;
-      if (on) el.setAttribute('contenteditable', 'true'); else el.removeAttribute('contenteditable');
-    });
+    markEditable(document, on);
     if (on) { endIntro(); document.querySelectorAll('.count').forEach(el => el.textContent = el.dataset.final); }
     else {
       if (document.activeElement) document.activeElement.blur();
@@ -914,6 +1016,8 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
   });
   document.addEventListener('input', e => {
     dirty = true;
+    const fsl = e.target.closest && e.target.closest('.free');
+    if (fsl) { clearTimeout(fitT); fitT = setTimeout(() => fitFree(fsl), 250); }
     const c = e.target.closest && e.target.closest('.count');
     if (c) c.dataset.final = c.textContent.trim();
   });
@@ -935,30 +1039,163 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
     };
     img.src = url;
   }
-  document.querySelectorAll('.photo').forEach(p => {
-    p.addEventListener('click', e => { if (!editing) return; e.stopPropagation(); target = p; fileInput.value = ''; fileInput.click(); });
-    p.addEventListener('dblclick', e => {
-      if (!editing || !p.classList.contains('has-img')) return;
-      e.stopPropagation(); p.style.backgroundImage = ''; p.classList.remove('has-img'); dirty = true;
-    });
-    p.addEventListener('dragover', e => { e.preventDefault(); p.classList.add('drag'); });
-    p.addEventListener('dragleave', () => p.classList.remove('drag'));
-    p.addEventListener('drop', e => { e.preventDefault(); p.classList.remove('drag'); placeImage(p, e.dataTransfer.files[0]); });
+  // делегирование: работает и для фото, добавленных конструктором
+  const photoAt = e => e.target.closest && e.target.closest('.photo');
+  stage.addEventListener('click', e => {
+    const p = photoAt(e); if (!p || !editing) return;
+    e.stopPropagation(); target = p; fileInput.value = ''; fileInput.click();
+  }, true);
+  stage.addEventListener('dblclick', e => {
+    const p = photoAt(e); if (!p || !editing || !p.classList.contains('has-img')) return;
+    e.stopPropagation(); p.style.backgroundImage = ''; p.classList.remove('has-img'); dirty = true;
+  });
+  stage.addEventListener('dragover', e => { const p = photoAt(e); if (p) p.classList.add('drag'); });
+  stage.addEventListener('dragleave', e => { const p = photoAt(e); if (p) p.classList.remove('drag'); });
+  stage.addEventListener('drop', e => {
+    const p = photoAt(e); if (!p) return;
+    e.preventDefault(); p.classList.remove('drag'); placeImage(p, e.dataTransfer.files[0]);
   });
   fileInput.addEventListener('change', () => { if (target) placeImage(target, fileInput.files[0]); });
   addEventListener('dragover', e => e.preventDefault());
   addEventListener('drop', e => e.preventDefault());
 
+  // ---------- конструктор слайдов ----------
+  const PH = '<div class="photo" data-label="Фото"></div>';
+  const DIAL = '<div class="dial"><svg viewBox="0 0 420 420" aria-hidden="true"><circle class="bg" cx="210" cy="210" r="180"/><circle class="fg" cx="210" cy="210" r="180"/></svg>';
+  const rep = (n, f) => Array.from({ length: n }, (_, i) => f(i + 1)).join('');
+  // item — что добавляет «＋ пункт» внутри элемента
+  const BLOCKS = {
+    lead: { html: '<p class="lead">Текст или подзаголовок — кликните, чтобы изменить</p>' },
+    segs: { item: '.seg', tone: 1, html: '<div class="segs">' + rep(2, i => `<div class="seg"><div class="seg-h"><h3>Раздел ${i}</h3><p class="sum">+00 млн</p></div>
+      <div class="lv"><p class="lv-t">Драйвер</p><p class="lv-d">Пояснение: что делаем и где</p><p class="lv-m">+00 млн</p></div>
+      <div class="lv"><p class="lv-t">Показатель</p><p class="lv-k"><span class="coral">0%</span><i>→</i><span class="green">≥ 0%</span></p><p class="lv-m">+00 млн</p></div></div>`) + '</div>' },
+    drivers: { item: '.drv', tone: 1, html: '<div class="drivers">' + rep(3, i => `<div class="drv"><p class="no">ЛИНИЯ 0${i}</p><h3>Название драйвера</h3><p class="val">+00 млн</p><p class="cap">подпись</p></div>`) + '</div>' },
+    tiles: { item: '.tile', tone: 1, html: '<div class="tiles">' + rep(4, () => '<div class="tile"><p class="lab">Показатель</p><p class="v count" data-final="ТОП 1">ТОП 1</p></div>') + '</div>' },
+    marquee: { item: '.marq', tone: 1, html: '<div class="marquee">' + rep(4, () => '<div class="marq"><div class="in"><p class="lab">Показатель</p><p class="v green">ТОП 1</p></div></div>') + '</div>' },
+    table: { item: 'tr', cols: 1, html: '<table><tr><th>Показатель</th><th class="n">Факт</th><th class="n">Цель</th><th class="n">Итог</th></tr>' +
+      rep(3, () => '<tr><td>Название показателя</td><td class="n coral">0%</td><td class="n">0%</td><td class="n"><span class="st coral">ниже цели</span></td></tr>') +
+      '<tr class="hit"><td>Название показателя</td><td class="n green">0%</td><td class="n">0%</td><td class="n"><span class="st green">выше цели</span></td></tr></table>' },
+    facts: { item: '.fact', tone: 1, html: '<div class="facts">' + rep(3, i => `<div class="fact">${DIAL}<p class="val count" data-final="${[75, 50, 25][i - 1]}%">${[75, 50, 25][i - 1]}%</p></div><h3>Показатель</h3></div>`) + '</div>' },
+    questions: { item: '.q', tone: 1, html: '<div class="questions">' + rep(2, i => `<div class="q"><b>0${i}</b><p>Вопрос?</p></div>`) + '</div>' },
+    gal: { item: 'figure', html: '<div class="gal">' + rep(3, () => `<figure>${PH}<figcaption><h3>Имя Фамилия</h3><p>Подпись</p></figcaption></figure>`) + '</div>' },
+    speakers: { item: 'figure', html: '<div class="gal">' + rep(2, () => `<figure>${PH}<figcaption><span>Спикер</span><h3>Имя Фамилия</h3></figcaption></figure>`) + '</div>' },
+    podium: { item: '.pcol', tone: 1, html: '<div class="podium">' + [[2, 'r2', 'silver'], [1, 'r1', ''], [3, 'r3', 'bronze']].map(([n, r, m]) =>
+      `<div class="pcol"><div class="photo round"${m ? ` style="--m:var(--${m})"` : ''} data-label="Фото"></div><h3>Название</h3><div class="step ${r}"><b>${n}</b><span>ранг</span></div></div>`).join('') + '</div>' },
+    pitch: { item: '.clap', tone: 1, html: '<div class="pitch">' + rep(3, i => `<div class="clap"><div class="bar"></div><div class="body"><p class="num">0${i}</p><h3>Заголовок</h3><p>Пояснение</p></div></div>`) + '</div>' },
+    script: { item: 'li', html: '<div class="script"><p class="slug">Инт. Штаб ВВБ — день</p><ol>' + rep(4, i => `<li><b>Сцена ${i}</b>Что происходит и кто отвечает</li>`) + '</ol></div>' },
+    fork: { html: `<div class="fork"><svg viewBox="0 0 1640 620" aria-hidden="true">
+      <path class="a" d="M300 310 C 620 310, 680 127, 975 127" stroke="#E7B24A" marker-end="url(#ma)"/><path class="b" d="M300 310 C 620 310, 680 502, 975 502" stroke="#A3B6C8" marker-end="url(#mb)"/></svg>
+      <div class="node"><p>Сейчас</p><p>Точка</p></div>
+      <div class="end a"><p class="lab">Финал А</p><h3>Вариант А</h3><p>Результат</p></div>
+      <div class="end b"><p class="lab">Финал Б</p><h3>Вариант Б</h3><p>Результат</p></div></div>` },
+    total: { tone: 1, html: '<div class="total"><h3>Итого</h3><p>+00 млн</p></div>' },
+  };
+  const TONES = ['', 'gold', 'green', 'coral', 'steel', 'ink'];
+  let fitT;
+  // слайд-конструктор подгоняет содержимое под кадр
+  function fitFree(s) {
+    const b = s && s.querySelector('.blocks');
+    if (!b) return;
+    b.style.zoom = '';
+    for (let n = 0; n < 3; n++) {
+      const z = parseFloat(b.style.zoom) || 1, k = b.clientHeight / b.scrollHeight;
+      if (k >= 0.995) break;
+      b.style.zoom = Math.max(0.35, z * k * 0.99).toFixed(3);
+    }
+  }
+  function ctlBtn(t, title, fn, cls) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = t; b.title = title; if (cls) b.className = cls;
+    b.onclick = e => { e.stopPropagation(); fn(); dirty = true; fitFree(b.closest('.slide')); };
+    return b;
+  }
+  function decorate(blk) {
+    if (blk.querySelector(':scope > .blk-ctl')) return;
+    const def = BLOCKS[blk.dataset.type] || {}, c = document.createElement('div');
+    c.className = 'blk-ctl';
+    const items = () => [...blk.querySelectorAll(def.item)].filter(el => !el.closest('.blk-ctl'));
+    if (def.item) {
+      c.append(ctlBtn('＋', 'Добавить пункт', () => {
+        const all = items(), last = all[all.length - 1], el = last.cloneNode(true);
+        el.classList.remove('hit');
+        el.querySelectorAll('.photo').forEach(p => { p.classList.remove('has-img'); p.style.backgroundImage = ''; });
+        last.after(el); markEditable(el, editing);
+      }), ctlBtn('−', 'Убрать последний пункт', () => { const all = items(); if (all.length > 1) all[all.length - 1].remove(); }));
+    }
+    if (def.cols) {
+      c.append(ctlBtn('＋ столбец', 'Добавить столбец', () => blk.querySelectorAll('tr').forEach(tr => {
+        const td = tr.lastElementChild.cloneNode(true); tr.append(td); markEditable(tr, editing);
+      })), ctlBtn('− столбец', 'Убрать последний столбец', () => blk.querySelectorAll('tr').forEach(tr => {
+        if (tr.children.length > 2) tr.lastElementChild.remove();
+      })));
+    }
+    if (def.tone) c.append(ctlBtn('● цвет', 'Сменить цвет акцента', () => {
+      const t = TONES[(TONES.indexOf(blk.dataset.tone || '') + 1) % TONES.length];
+      if (t) blk.dataset.tone = t; else delete blk.dataset.tone;
+    }));
+    c.append(
+      ctlBtn('↑', 'Выше', () => { const p = blk.previousElementSibling; if (p) p.before(blk); }),
+      ctlBtn('↓', 'Ниже', () => { const n = blk.nextElementSibling; if (n) n.after(blk); }),
+      ctlBtn('✕', 'Удалить элемент', () => blk.remove(), 'del'));
+    blk.prepend(c);
+  }
+  document.querySelectorAll('.free .blk').forEach(decorate);
+  function addBlock(type) {
+    const s = slides[cur];
+    if (!s || !s.classList.contains('free')) return;
+    const blk = document.createElement('div');
+    blk.className = 'blk'; blk.dataset.type = type;
+    blk.innerHTML = BLOCKS[type].html;
+    s.querySelector('.blocks').append(blk);
+    decorate(blk); markEditable(blk, editing);
+    blk.querySelectorAll('.count').forEach(el => el.textContent = el.dataset.final);
+    dials(s, true);
+    dirty = true; fitFree(s);
+  }
+  function addSlide() {
+    const here = slides[cur] || slides[0];
+    const s = document.createElement('section');
+    s.className = 'slide free';
+    s.dataset.act = here.dataset.act || '';
+    s.innerHTML = '<header class="hd rv"><h2>Заголовок слайда</h2></header>\n  <div class="blocks rv" style="--i:1"></div>';
+    here.after(s);
+    reindex(); markEditable(s, editing);
+    go(slides.indexOf(s));
+    dirty = true;
+    const h = s.querySelector('h2'); h.focus();
+    const r = document.createRange(); r.selectNodeContents(h);
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+  }
+  function delSlide() {
+    const s = slides[cur];
+    if (!s || !s.classList.contains('free') || !confirm('Удалить этот слайд?')) return;
+    const i = cur;
+    s.remove(); reindex();
+    cur = -1; go(Math.min(i, slides.length - 1));
+    dirty = true;
+  }
+  const kit = document.getElementById('kit');
+  kit.addEventListener('mousedown', e => e.preventDefault());
+  kit.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.add) addBlock(b.dataset.add);
+    else if (b.dataset.kit === 'cols') { const bl = slides[cur].querySelector('.blocks'); bl.classList.toggle('two'); dirty = true; fitFree(slides[cur]); }
+    else if (b.dataset.kit === 'del') delSlide();
+    else if (b.dataset.kit === 'min') { kit.classList.toggle('min'); b.textContent = kit.classList.contains('min') ? '▴ Элементы' : '▾'; }
+  });
+  document.getElementById('btn-add').onclick = addSlide;
+
   // ---------- сохранение копии ----------
   async function save() {
     const root = document.documentElement.cloneNode(true);
     root.querySelectorAll('[contenteditable]').forEach(e => e.removeAttribute('contenteditable'));
-    root.querySelectorAll('.slate,.cr-add').forEach(e => e.remove());
+    root.querySelectorAll('.slate,.cr-add,.blk-ctl').forEach(e => e.remove());
     tidyCredits(root);
     root.querySelectorAll('.slide').forEach(s => s.classList.remove('active', 'run', 'intro', 'standby', 'armed'));
     root.querySelectorAll('.count').forEach(e => e.textContent = e.dataset.final);
     root.querySelectorAll('.fg').forEach(e => e.removeAttribute('style'));
     root.querySelector('body').removeAttribute('class');
+    root.querySelector('#kit').classList.remove('min');
     root.querySelector('#stage').removeAttribute('style');
     const blob = new Blob(['<!DOCTYPE html>\n' + root.outerHTML], { type: 'text/html' });
     const name = decodeURIComponent(location.pathname.split('/').pop() || 'presentation.html').replace(/\.html?$/i, '') + '-правки.html';
