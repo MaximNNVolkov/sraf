@@ -1,5 +1,5 @@
 // Собирает один автономный HTML: встраивает шрифты (base64), чтобы файл открывался без интернета.
-// Запуск: node kino/build.mjs  →  kino/strategic-session-kino.html
+// Запуск: node kino/build.mjs  →  kino/strategic-session-kino.html и kino/template-kino.html (чистый шаблон)
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,6 +22,16 @@ const fonts = [
 ].join("\n");
 
 const html = readFileSync(join(here, "src", "deck.html"), "utf8").replace("/*@@FONTS@@*/", fonts);
-const out = join(here, "strategic-session-kino.html");
-writeFileSync(out, html);
-console.log(`${out} — ${(html.length / 1024).toFixed(0)} КБ`);
+const write = (name, text) => {
+  const out = join(here, name);
+  writeFileSync(out, text);
+  console.log(`${out} — ${(text.length / 1024).toFixed(0)} КБ`);
+};
+write("strategic-session-kino.html", html);
+
+// Чистый шаблон: тот же движок, титульный слайд и один пустой слайд-конструктор
+const OPEN = '<div id="stage">', CLOSE = '</div>\n\n<div id="grain"';
+const a = html.indexOf(OPEN) + OPEN.length, b = html.indexOf(CLOSE);
+if (a < OPEN.length || b < 0) throw new Error("не найдены границы слайдов в deck.html");
+const slides = readFileSync(join(here, "src", "template.html"), "utf8");
+write("template-kino.html", (html.slice(0, a) + slides + html.slice(b)).replace(/<title>.*?<\/title>/, "<title>Презентация</title>"));

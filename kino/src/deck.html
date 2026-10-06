@@ -372,7 +372,9 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
 .pot .total{margin-top:26px;padding-top:22px}
 /* ---------- конструктор слайдов ---------- */
 .free .blocks{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:safe center;gap:34px}
-.free .blocks.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:safe center;column-gap:50px}
+.free .blocks{position:relative}
+.free .blocks.two{display:grid;grid-template-columns:minmax(0,calc(var(--split,50%) - 25px)) minmax(0,calc(100% - var(--split,50%) - 25px));align-content:safe center;column-gap:50px}
+.free .blk[style*=width]{margin-inline:auto}
 .free .blk{position:relative}
 .free .blk>*{margin-top:0;margin-bottom:0}
 .free .blk>.total{padding-top:26px}
@@ -409,7 +411,7 @@ body.editing .blk:hover>.blk-ctl,body.editing .blk:focus-within>.blk-ctl{opacity
 .blk-ctl button{font:700 18px/1 var(--fb);color:#E8E1D4;background:#1E1C19;border:1px solid #3A362F;border-radius:8px;padding:9px 13px;cursor:pointer;white-space:nowrap}
 .blk-ctl button:hover{border-color:var(--gold);color:#fff}
 .blk-ctl button.del:hover{border-color:var(--coral);color:var(--coral)}
-body.editing .free .blocks:empty::before{content:'Пустой слайд — добавьте элементы панелью внизу';margin:auto;font:italic 400 40px/1.3 var(--fs);color:var(--mute)}
+body.editing .free .blocks:not(:has(.blk))::before{content:'Пустой слайд — добавьте элементы панелью внизу';margin:auto;font:italic 400 40px/1.3 var(--fs);color:var(--mute)}
 body.editing.on-free #kit{display:flex}
 #kit{position:fixed;left:50%;bottom:74px;transform:translateX(-50%);z-index:65;flex-wrap:wrap;justify-content:center;gap:8px;
   width:min(1180px,96vw);padding:14px 16px;background:rgba(18,16,14,.96);border:1px solid #3A362F;border-radius:14px;font:600 14px/1 var(--fb);color:#CFC7B9}
@@ -435,9 +437,61 @@ body.editing.on-free #kit.min{width:auto} #kit.min button:not(.keep),#kit.min .t
 .free .clap .num{font-size:min(150px,34cqi)}
 .free .pcol h3{font-size:min(40px,11cqi)}
 .free .blocks.two .marq{height:280px}
+.free .blk[data-type=table]{container-type:inline-size}
+.free table{table-layout:fixed}
+.free th:first-child:not([style*=width]){width:38%}
+.free th{font-size:max(11px,min(19px,1.2cqi));letter-spacing:.2em;padding:0 min(26px,1.6cqi) 20px;overflow-wrap:anywhere}
+.free td{font-size:max(15px,min(31px,1.95cqi));padding:21px min(26px,1.6cqi);overflow-wrap:anywhere}
+.free td.n{font-size:max(18px,min(42px,2.7cqi))}
+.free .st{font-size:max(11px,min(19px,1.2cqi));padding:.5em .8em;white-space:normal;letter-spacing:.08em}
 body.editing.on-free #edit-tip{display:none}
 #kit{opacity:.55;transition:opacity .2s} #kit:hover,#kit:focus-within{opacity:1}
 @media print{#kit,.blk-ctl{display:none!important}}
+/* ширина элементов и колонок — ручки в режиме правки */
+.rz{display:none;position:absolute;z-index:4;touch-action:none}
+body.editing .free .rz{display:block}
+.rz-w{right:-26px;top:50%;width:12px;height:96px;margin-top:-48px;border-radius:6px;background:var(--steel);cursor:ew-resize;opacity:0;transition:opacity .2s}
+.rz-c,.rz-t{width:22px;margin-left:-11px;cursor:col-resize;opacity:0;transition:opacity .2s}
+.rz-c::after,.rz-t::after{content:'';position:absolute;left:9px;top:0;bottom:0;border-left:4px dotted var(--gold)}
+body.editing .blk:hover>.rz,body.editing .blk.rz-on>.rz{opacity:1}
+.rz:hover,.rz.on{filter:brightness(1.35)}
+.rz-s{left:var(--split,50%);top:0;bottom:0;width:30px;margin-left:-15px;cursor:col-resize}
+body.editing .free .blocks:not(.two)>.rz-s{display:none}
+.rz-s::after{content:'';position:absolute;left:13px;top:0;bottom:0;border-left:4px dashed rgba(163,182,200,.5)}
+.rz-s:hover::after,.rz-s.on::after{border-left-color:var(--steel)}
+body.rz-drag,body.rz-drag *{cursor:col-resize!important;user-select:none}
+/* фоны слайдов */
+.sw{background:radial-gradient(ellipse 110% 85% at 50% 0%,#201C17 0%,rgba(11,10,9,0) 62%),var(--bg)}
+:is(.slide,.sw)[data-bg=spot]{background:radial-gradient(ellipse 48% 80% at 50% -8%,rgba(255,226,170,.24) 0%,rgba(255,226,170,.06) 55%,rgba(0,0,0,0) 75%),
+  radial-gradient(ellipse 60% 22% at 50% 104%,rgba(255,226,170,.10),rgba(0,0,0,0) 70%),radial-gradient(ellipse 120% 120% at 50% 50%,rgba(0,0,0,0) 50%,rgba(0,0,0,.75) 100%),#080706}
+:is(.slide,.sw)[data-bg=curtain]{background:radial-gradient(ellipse 64% 72% at 50% 52%,rgba(11,9,8,.96) 38%,rgba(11,9,8,.55) 78%,rgba(11,9,8,.25) 100%),
+  linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0) 22%,rgba(0,0,0,0) 80%,rgba(0,0,0,.6)),
+  repeating-linear-gradient(90deg,#2A0808 0,#5C1616 3.2%,#7A2020 4.2%,#4A1010 6%,#2A0808 7.4%),#2A0808}
+:is(.slide,.sw)[data-bg=film]{background:repeating-linear-gradient(90deg,rgba(232,225,212,.5) 0 1.6%,transparent 1.6% 3.6%) left 0 top 2%/100% 2% no-repeat,
+  repeating-linear-gradient(90deg,rgba(232,225,212,.5) 0 1.6%,transparent 1.6% 3.6%) left 0 bottom 2%/100% 2% no-repeat,
+  linear-gradient(#020202,#020202) top/100% 6% no-repeat,linear-gradient(#020202,#020202) bottom/100% 6% no-repeat,
+  radial-gradient(ellipse 110% 85% at 50% 0%,#201C17 0%,rgba(11,10,9,0) 62%),var(--bg)}
+:is(.slide,.sw)[data-bg=night]{background:radial-gradient(ellipse 110% 85% at 50% 0%,#17263B 0%,rgba(7,10,16,0) 62%),
+  radial-gradient(ellipse 120% 120% at 50% 50%,rgba(0,0,0,0) 55%,rgba(0,0,0,.65) 100%),#070A10}
+:is(.slide,.sw)[data-bg=amber]{background:radial-gradient(ellipse 75% 90% at 0% 100%,rgba(231,178,74,.24) 0%,rgba(231,178,74,0) 62%),
+  radial-gradient(ellipse 55% 60% at 100% 0%,rgba(238,113,80,.14) 0%,rgba(238,113,80,0) 62%),var(--bg)}
+:is(.slide,.sw)[data-bg=board]{background:linear-gradient(rgba(243,237,226,.045) 2px,transparent 2px) 0 0/6.25% 11.11%,
+  linear-gradient(90deg,rgba(243,237,226,.045) 2px,transparent 2px) 0 0/6.25% 11.11%,
+  radial-gradient(ellipse 110% 85% at 50% 0%,#201C17 0%,rgba(11,10,9,0) 62%),radial-gradient(ellipse 120% 120% at 50% 50%,rgba(0,0,0,0) 55%,rgba(0,0,0,.6) 100%),var(--bg)}
+:is(.slide,.sw)[data-bg=black]{background:#030303}
+:is(.slide,.sw)[data-bg=photo]{background-color:var(--bg);background-size:cover;background-position:center}
+.sw[data-bg=photo]{background-image:linear-gradient(135deg,#3A362F,#151412)}
+#btn-bg{display:none} body.editing #btn-bg{display:inline-block}
+#bgs{position:fixed;right:22px;bottom:74px;z-index:66;display:none;width:430px;padding:16px;background:rgba(18,16,14,.97);border:1px solid #3A362F;border-radius:14px;font:600 13px/1.2 var(--fb);color:#CFC7B9}
+body.editing.bgs-open #bgs{display:block}
+#bgs .t{letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-size:12px;margin:0 0 12px}
+#bgs .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+#bgs button{font:inherit;color:#E8E1D4;background:#1E1C19;border:1px solid #3A362F;border-radius:9px;padding:6px;cursor:pointer;text-align:center}
+#bgs button:hover{border-color:var(--gold);color:#fff}
+#bgs button.on{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+#bgs .sw{display:block;height:64px;border-radius:5px;margin-bottom:6px;pointer-events:none}
+#bgs .row2{display:flex;gap:8px;margin-top:12px} #bgs .row2 button{flex:1;padding:10px 8px}
+@media print{.rz,#bgs{display:none!important}}
 </style>
 </head>
 <body>
@@ -828,7 +882,7 @@ body.editing.on-free #edit-tip{display:none}
 
 <div id="grain" aria-hidden="true"></div>
 <div id="black" aria-hidden="true"></div>
-<div id="edit-tip">Режим правки: кликните по тексту, чтобы изменить его; по рамке фото — чтобы вставить снимок (или перетащите файл). Двойной клик по фото — убрать. Титры в режиме правки стоят на месте: листайте колесом мыши, «+ добавить строку» — новое имя; пустые строки удалятся сами. «＋ Слайд» внизу — новый слайд-конструктор: заголовок и элементы из панели. <b>Ctrl+S</b> — сохранить копию, <b>Esc</b> — выйти.</div>
+<div id="edit-tip">Режим правки: кликните по тексту, чтобы изменить его; по рамке фото — чтобы вставить снимок (или перетащите файл). Двойной клик по фото — убрать. Титры в режиме правки стоят на месте: листайте колесом мыши, «+ добавить строку» — новое имя; пустые строки удалятся сами. «＋ Слайд» внизу — новый слайд-конструктор: заголовок и элементы из панели. «◧ Фон» — фон слайда. Ручки сбоку и между колонками — ширина (двойной клик — сброс). <b>Ctrl+S</b> — сохранить копию, <b>Esc</b> — выйти.</div>
 <div id="help" role="dialog" aria-label="Управление">
   <h4>Управление</h4>
   <table>
@@ -839,6 +893,8 @@ body.editing.on-free #edit-tip{display:none}
     <tr><td>B</td><td>затемнение экрана</td></tr>
     <tr><td>E</td><td>режим правки: тексты и фото</td></tr>
     <tr><td>E → ＋ Слайд</td><td>новый слайд-конструктор после текущего</td></tr>
+    <tr><td>E → ◧ Фон</td><td>фон слайда: варианты или своё фото</td></tr>
+    <tr><td>E → ручки</td><td>тяните — ширина элемента и колонок; двойной клик — сброс</td></tr>
     <tr><td>Ctrl+S</td><td>сохранить копию файла с правками и фото</td></tr>
     <tr><td>Ctrl+P</td><td>печать или PDF (слайд на страницу)</td></tr>
     <tr><td>H · ?</td><td>эта подсказка</td></tr>
@@ -851,6 +907,7 @@ body.editing.on-free #edit-tip{display:none}
   <button id="next" title="Вперёд (→)">▶</button>
   <button id="btn-edit" title="Режим правки (E)">✎ Правка</button>
   <button id="btn-add" title="Новый слайд-конструктор после текущего">＋ Слайд</button>
+  <button id="btn-bg" title="Фон слайда">◧ Фон</button>
   <button id="btn-save" title="Сохранить копию (Ctrl+S)">⤓ Сохранить</button>
   <button id="btn-fs" title="Полный экран (F)">⛶</button>
   <button id="btn-help" title="Подсказка (H)">?</button>
@@ -876,6 +933,21 @@ body.editing.on-free #edit-tip{display:none}
   <button data-kit="cols" class="keep" title="Элементы в одну или две колонки">▥ Колонки</button>
   <button data-kit="del" class="del">🗑 Удалить слайд</button>
   <button data-kit="min" class="keep" title="Свернуть панель">▾</button>
+</div>
+<div id="bgs" aria-label="Фон слайда">
+  <p class="t">Фон слайда</p>
+  <div class="grid">
+    <button data-bg=""><i class="sw"></i>Кинозал</button>
+    <button data-bg="spot"><i class="sw" data-bg="spot"></i>Прожектор</button>
+    <button data-bg="curtain"><i class="sw" data-bg="curtain"></i>Занавес</button>
+    <button data-bg="film"><i class="sw" data-bg="film"></i>Плёнка</button>
+    <button data-bg="night"><i class="sw" data-bg="night"></i>Ночной сеанс</button>
+    <button data-bg="amber"><i class="sw" data-bg="amber"></i>Янтарь</button>
+    <button data-bg="board"><i class="sw" data-bg="board"></i>Раскадровка</button>
+    <button data-bg="black"><i class="sw" data-bg="black"></i>Темнота</button>
+    <button data-bg="photo"><i class="sw" data-bg="photo"></i>Своё фото…</button>
+  </div>
+  <div class="row2"><button data-bgs="all" title="Поставить этот фон на все слайды">Ко всем слайдам</button><button data-bgs="close">Готово</button></div>
 </div>
 <input type="file" id="file" accept="image/*" hidden>
 
@@ -940,7 +1012,7 @@ body.editing.on-free #edit-tip{display:none}
     const s = slides[i];
     s.classList.add('active');
     body.classList.toggle('on-free', s.classList.contains('free'));
-    fitFree(s);
+    fitFree(s); if (editing) markBg();
     if (s.classList.contains('credits')) { void s.offsetWidth; s.classList.add('run'); }
     s.querySelectorAll('.count').forEach(countUp);
     requestAnimationFrame(() => dials(s, true));
@@ -974,11 +1046,12 @@ body.editing.on-free #edit-tip{display:none}
     });
   }
   function setEdit(on) {
+    if (on && standby) { standby = false; cover.classList.remove('standby', 'armed'); }
     editing = on;
     body.classList.toggle('editing', on);
     document.getElementById('btn-edit').classList.toggle('on', on);
     markEditable(document, on);
-    if (on) { endIntro(); document.querySelectorAll('.count').forEach(el => el.textContent = el.dataset.final); }
+    if (on) { endIntro(); document.querySelectorAll('.count').forEach(el => el.textContent = el.dataset.final); placeAll(slides[cur]); }
     else {
       if (document.activeElement) document.activeElement.blur();
       tidyCredits(document);
@@ -1025,19 +1098,21 @@ body.editing.on-free #edit-tip{display:none}
   // ---------- фото ----------
   const fileInput = document.getElementById('file');
   let target = null;
-  function placeImage(photo, file) {
+  function shrink(file, max, done) {
     if (!file || !file.type.startsWith('image/')) return;
     const img = new Image(), url = URL.createObjectURL(file);
     img.onload = () => {
-      const max = 1400, k = Math.min(1, max / Math.max(img.width, img.height));
+      const k = Math.min(1, max / Math.max(img.width, img.height));
       const c = document.createElement('canvas');
       c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
       c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-      photo.style.backgroundImage = `url(${c.toDataURL('image/jpeg', .86)})`;
-      photo.classList.add('has-img');
       URL.revokeObjectURL(url); dirty = true;
+      done(c.toDataURL('image/jpeg', .86));
     };
     img.src = url;
+  }
+  function placeImage(photo, file) {
+    shrink(file, 1400, d => { photo.style.backgroundImage = `url(${d})`; photo.classList.add('has-img'); });
   }
   // делегирование: работает и для фото, добавленных конструктором
   const photoAt = e => e.target.closest && e.target.closest('.photo');
@@ -1055,7 +1130,7 @@ body.editing.on-free #edit-tip{display:none}
     const p = photoAt(e); if (!p) return;
     e.preventDefault(); p.classList.remove('drag'); placeImage(p, e.dataTransfer.files[0]);
   });
-  fileInput.addEventListener('change', () => { if (target) placeImage(target, fileInput.files[0]); });
+  fileInput.addEventListener('change', () => { if (target && target.bgPhoto) target.bgPhoto(fileInput.files[0]); else if (target) placeImage(target, fileInput.files[0]); });
   addEventListener('dragover', e => e.preventDefault());
   addEventListener('drop', e => e.preventDefault());
 
@@ -1102,11 +1177,12 @@ body.editing.on-free #edit-tip{display:none}
       if (k >= 0.995) break;
       b.style.zoom = Math.max(0.35, z * k * 0.99).toFixed(3);
     }
+    if (editing) placeAll(s);
   }
   function ctlBtn(t, title, fn, cls) {
     const b = document.createElement('button');
     b.type = 'button'; b.textContent = t; b.title = title; if (cls) b.className = cls;
-    b.onclick = e => { e.stopPropagation(); fn(); dirty = true; fitFree(b.closest('.slide')); };
+    b.onclick = e => { e.stopPropagation(); fn(); dirty = true; const blk = b.closest('.blk'); if (blk) handles(blk); fitFree(b.closest('.slide')); };
     return b;
   }
   function decorate(blk) {
@@ -1123,11 +1199,12 @@ body.editing.on-free #edit-tip{display:none}
       }), ctlBtn('−', 'Убрать последний пункт', () => { const all = items(); if (all.length > 1) all[all.length - 1].remove(); }));
     }
     if (def.cols) {
-      c.append(ctlBtn('＋ столбец', 'Добавить столбец', () => blk.querySelectorAll('tr').forEach(tr => {
+      const unsize = () => blk.querySelectorAll('th').forEach(th => th.style.width = '');
+      c.append(ctlBtn('＋ столбец', 'Добавить столбец', () => { unsize(); blk.querySelectorAll('tr').forEach(tr => {
         const td = tr.lastElementChild.cloneNode(true); tr.append(td); markEditable(tr, editing);
-      })), ctlBtn('− столбец', 'Убрать последний столбец', () => blk.querySelectorAll('tr').forEach(tr => {
+      }); }), ctlBtn('− столбец', 'Убрать последний столбец', () => { unsize(); blk.querySelectorAll('tr').forEach(tr => {
         if (tr.children.length > 2) tr.lastElementChild.remove();
-      })));
+      }); }));
     }
     if (def.tone) c.append(ctlBtn('● цвет', 'Сменить цвет акцента', () => {
       const t = TONES[(TONES.indexOf(blk.dataset.tone || '') + 1) % TONES.length];
@@ -1138,7 +1215,112 @@ body.editing.on-free #edit-tip{display:none}
       ctlBtn('↓', 'Ниже', () => { const n = blk.nextElementSibling; if (n) n.after(blk); }),
       ctlBtn('✕', 'Удалить элемент', () => blk.remove(), 'del'));
     blk.prepend(c);
+    handles(blk);
   }
+
+  // ---------- ширина элементов и колонок ----------
+  const GRID = ':scope > :is(.drivers,.tiles,.marquee,.facts,.pitch,.podium,.gal,.segs)';
+  const cellsOf = blk => {
+    const g = blk.querySelector(GRID);
+    if (g) return [...g.children];
+    const tr = blk.querySelector('tr');
+    return tr ? [...tr.children] : [];
+  };
+  function handles(blk) {
+    blk.querySelectorAll(':scope > .rz').forEach(h => h.remove());
+    const add = (cls, title, i) => {
+      const h = document.createElement('div');
+      h.className = 'rz ' + cls; h.title = title;
+      if (i !== undefined) h.dataset.i = i;
+      blk.append(h);
+    };
+    add('rz-w', 'Ширина элемента: тяните вправо или влево; двойной клик — во всю ширину');
+    const g = blk.querySelector(GRID), cells = cellsOf(blk);
+    // после ＋/− пункта прежние доли колонок уже не подходят
+    if (g && g.style.gridTemplateColumns && g.style.gridTemplateColumns.split('minmax').length - 1 !== cells.length) g.style.gridTemplateColumns = '';
+    const cls = g ? 'rz-c' : 'rz-t';
+    if (g || blk.querySelector('table')) cells.slice(0, -1).forEach((_, i) => add(cls, 'Ширина колонок: тяните; двойной клик — поровну', i));
+    place(blk);
+  }
+  // ручки между колонками ставятся по фактическим границам карточек
+  function place(blk) {
+    const hs = blk.querySelectorAll(':scope > .rz-c, :scope > .rz-t');
+    if (!hs.length || !blk.offsetParent) return;
+    const br = blk.getBoundingClientRect(), k = br.width / parseFloat(getComputedStyle(blk).width) || 1;
+    const cells = cellsOf(blk), box = (blk.querySelector('table') || cells[0]).getBoundingClientRect();
+    hs.forEach(h => {
+      const a = cells[+h.dataset.i], b = cells[+h.dataset.i + 1];
+      if (!a || !b) return;
+      const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+      h.style.left = (((ra.right + rb.left) / 2 - br.left) / k).toFixed(1) + 'px';
+      h.style.top = ((box.top - br.top) / k).toFixed(1) + 'px';
+      h.style.height = (Math.max(box.height, ra.height) / k).toFixed(1) + 'px';
+    });
+  }
+  function splitHandle(bl) {
+    if (bl.querySelector(':scope > .rz-s')) return;
+    const h = document.createElement('div');
+    h.className = 'rz rz-s'; h.title = 'Ширина колонок слайда: тяните; двойной клик — поровну';
+    bl.append(h);
+  }
+  const placeAll = s => s && s.querySelectorAll('.blk').forEach(place);
+  stage.addEventListener('pointerover', e => {
+    const blk = editing && e.target.closest && e.target.closest('.free .blk');
+    if (blk && !blk.contains(e.relatedTarget)) place(blk);
+  });
+  stage.addEventListener('pointerdown', e => {
+    const h = editing && e.target.closest && e.target.closest('.rz');
+    if (!h) return;
+    e.preventDefault(); e.stopPropagation();
+    const s = h.closest('.slide'), x0 = e.clientX;
+    let move;
+    if (h.classList.contains('rz-s')) {
+      const bl = h.parentElement, w = bl.getBoundingClientRect().width, a0 = parseFloat(bl.style.getPropertyValue('--split')) || 50;
+      move = dx => bl.style.setProperty('--split', Math.max(20, Math.min(80, a0 + dx / w * 100)).toFixed(1) + '%');
+    } else {
+      const blk = h.parentElement;
+      blk.classList.add('rz-on');
+      if (h.classList.contains('rz-w')) {
+        const w0 = blk.getBoundingClientRect().width, base = w0 / ((parseFloat(blk.style.width) || 100) / 100);
+        move = dx => {
+          const pct = Math.max(20, Math.min(100, (w0 + 2 * dx) / base * 100));
+          blk.style.width = pct > 99.5 ? '' : pct.toFixed(1) + '%';
+          placeAll(s);
+        };
+      } else {
+        const i = +h.dataset.i, cells = cellsOf(blk), w = cells.map(c => c.getBoundingClientRect().width);
+        const g = blk.querySelector(GRID), sum = w.reduce((x, y) => x + y, 0), min = sum * (g ? 0.08 : 0.12);
+        move = dx => {
+          dx = Math.max(min - w[i], Math.min(w[i + 1] - min, dx));
+          const ws = w.map((v, j) => j === i ? v + dx : j === i + 1 ? v - dx : v);
+          if (g) g.style.gridTemplateColumns = ws.map(v => `minmax(0,${(v / sum * ws.length).toFixed(3)}fr)`).join(' ');
+          else cells.forEach((c, j) => c.style.width = (ws[j] / sum * 100).toFixed(1) + '%');
+          place(blk);
+        };
+      }
+    }
+    h.classList.add('on'); body.classList.add('rz-drag');
+    h.setPointerCapture(e.pointerId);
+    const mv = ev => move(ev.clientX - x0);
+    const up = () => {
+      h.removeEventListener('pointermove', mv); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up);
+      h.classList.remove('on'); body.classList.remove('rz-drag');
+      const blk = h.closest('.blk'); if (blk) blk.classList.remove('rz-on');
+      dirty = true; fitFree(s); placeAll(s);
+    };
+    h.addEventListener('pointermove', mv); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up);
+  }, true);
+  stage.addEventListener('dblclick', e => {
+    const h = editing && e.target.closest && e.target.closest('.rz');
+    if (!h) return;
+    e.stopPropagation();
+    const blk = h.closest('.blk');
+    if (h.classList.contains('rz-s')) h.parentElement.style.removeProperty('--split');
+    else if (h.classList.contains('rz-w')) blk.style.width = '';
+    else { const g = blk.querySelector(GRID); if (g) g.style.gridTemplateColumns = ''; else cellsOf(blk).forEach(c => c.style.width = ''); }
+    dirty = true; const s = h.closest('.slide'); fitFree(s); placeAll(s);
+  }, true);
+  document.querySelectorAll('.free .blocks').forEach(splitHandle);
   document.querySelectorAll('.free .blk').forEach(decorate);
   function addBlock(type) {
     const s = slides[cur];
@@ -1159,6 +1341,7 @@ body.editing.on-free #edit-tip{display:none}
     s.dataset.act = here.dataset.act || '';
     s.innerHTML = '<header class="hd rv"><h2>Заголовок слайда</h2></header>\n  <div class="blocks rv" style="--i:1"></div>';
     here.after(s);
+    splitHandle(s.querySelector('.blocks'));
     reindex(); markEditable(s, editing);
     go(slides.indexOf(s));
     dirty = true;
@@ -1179,17 +1362,47 @@ body.editing.on-free #edit-tip{display:none}
   kit.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.add) addBlock(b.dataset.add);
-    else if (b.dataset.kit === 'cols') { const bl = slides[cur].querySelector('.blocks'); bl.classList.toggle('two'); dirty = true; fitFree(slides[cur]); }
+    else if (b.dataset.kit === 'cols') { const bl = slides[cur].querySelector('.blocks'); splitHandle(bl); bl.classList.toggle('two'); dirty = true; fitFree(slides[cur]); }
     else if (b.dataset.kit === 'del') delSlide();
     else if (b.dataset.kit === 'min') { kit.classList.toggle('min'); b.textContent = kit.classList.contains('min') ? '▴ Элементы' : '▾'; }
   });
   document.getElementById('btn-add').onclick = addSlide;
 
+  // ---------- фон слайда ----------
+  const bgs = document.getElementById('bgs');
+  const DIM = 'linear-gradient(rgba(11,10,9,.6),rgba(11,10,9,.84))';
+  function setBg(s, bg, img) {
+    if (bg) s.dataset.bg = bg; else delete s.dataset.bg;
+    s.style.backgroundImage = bg === 'photo' && img ? img : '';
+  }
+  function markBg() {
+    const s = slides[cur], v = (s && s.dataset.bg) || '';
+    bgs.querySelectorAll('[data-bg]').forEach(b => b.tagName === 'BUTTON' && b.classList.toggle('on', b.dataset.bg === v));
+  }
+  bgs.addEventListener('mousedown', e => e.preventDefault());
+  bgs.addEventListener('click', e => {
+    const b = e.target.closest('button'), s = slides[cur];
+    if (!b || !s) return;
+    e.stopPropagation();
+    if (b.dataset.bgs === 'close') { body.classList.remove('bgs-open'); return; }
+    if (b.dataset.bgs === 'all') {
+      slides.forEach(x => x !== s && setBg(x, s.dataset.bg, s.style.backgroundImage));
+      dirty = true; return;
+    }
+    if (b.dataset.bg === 'photo') {
+      target = { bgPhoto: f => shrink(f, 1920, d => { setBg(s, 'photo', `${DIM},url(${d})`); markBg(); }) };
+      fileInput.value = ''; fileInput.click(); return;
+    }
+    setBg(s, b.dataset.bg); markBg(); dirty = true;
+  });
+  document.getElementById('btn-bg').onclick = () => { markBg(); body.classList.toggle('bgs-open'); };
+
   // ---------- сохранение копии ----------
   async function save() {
     const root = document.documentElement.cloneNode(true);
     root.querySelectorAll('[contenteditable]').forEach(e => e.removeAttribute('contenteditable'));
-    root.querySelectorAll('.slate,.cr-add,.blk-ctl').forEach(e => e.remove());
+    root.querySelectorAll('.slate,.cr-add,.blk-ctl,.rz').forEach(e => e.remove());
+    root.querySelectorAll('.rz-on').forEach(e => e.classList.remove('rz-on'));
     tidyCredits(root);
     root.querySelectorAll('.slide').forEach(s => s.classList.remove('active', 'run', 'intro', 'standby', 'armed'));
     root.querySelectorAll('.count').forEach(e => e.textContent = e.dataset.final);
@@ -1225,6 +1438,7 @@ body.editing.on-free #edit-tip{display:none}
     const k = e.key;
     if (standby) {
       if (k === 'f' || k === 'F' || k === 'а' || k === 'А') fs();
+      else if (k === 'e' || k === 'E' || k === 'у' || k === 'У') setEdit(true);
       else if ([' ', 'Enter', 'ArrowRight', 'PageDown'].includes(k)) { e.preventDefault(); roll(); }
       return;
     }
