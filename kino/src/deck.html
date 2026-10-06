@@ -353,6 +353,23 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
   .credits .roll{display:none} .credits .wrap{opacity:1;animation:none}
   .slate span:first-child::before{animation:none}
 }
+/* потенциал неипотеки */
+.pot .hd{margin-bottom:34px}
+.segs{flex:1;min-height:0;display:grid;grid-template-columns:1.12fr 1fr .78fr;gap:30px}
+.seg{background:linear-gradient(180deg,#1C1A16,#131210);border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:4px 4px 14px 14px;padding:26px 32px 10px;display:flex;flex-direction:column}
+.seg-h{display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.seg-h h3{font:600 46px/1 var(--fd);text-transform:uppercase;letter-spacing:.04em}
+.seg-h .sum{font:700 46px/1 var(--fd);color:var(--green);white-space:nowrap}
+.lv{flex:1;padding:18px 0;display:flex;flex-direction:column;gap:8px}
+.lv+.lv{border-top:1px dashed var(--line)}
+.lv-t{font:700 20px/1.25 var(--fb);letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.lv-d{font:500 23px/1.3 var(--fb);color:var(--dim)}
+.lv-d b{color:var(--ink);font-weight:700}
+.lv-k{font:600 56px/1 var(--fd);display:flex;align-items:baseline;gap:20px;margin-top:6px}
+.lv-k i{font-style:normal;color:var(--mute);font-size:40px}
+.lv-m{font:700 52px/1 var(--fd);color:var(--green);margin-top:auto}
+.lv-m.ph,.sum.ph{color:var(--mute);text-decoration:none}
+.pot .total{margin-top:26px;padding-top:22px}
 </style>
 </head>
 <body>
@@ -458,6 +475,48 @@ body.editing .photo:hover{box-shadow:inset 0 0 0 3px var(--gold)}
     <div class="drv rv" style="--i:3"><p class="no">ЛИНИЯ 03</p><h3>Увеличение проникновения СсГ</h3><p class="val ph">+[__]</p><p class="cap">вклад в неипотеку</p></div>
   </div>
   <div class="total rv" style="--i:4"><h3>Итого потенциал</h3><p class="ph">+[__]</p></div>
+</section>
+
+<section class="slide pot" data-act="Акт II · Драйверы и практики">
+  <header class="hd rv"><p class="kicker">Акт II · Неипотека</p><h2>Потенциал неипотеки</h2></header>
+  <div class="segs">
+    <div class="seg rv" style="--i:1">
+      <div class="seg-h"><h3>Первичка</h3><p class="sum">+22,1 млн</p></div>
+      <div class="lv">
+        <p class="lv-t">Зона западения — проникновение СБР</p>
+        <p class="lv-d">Ориентир — Татарстан <b>59%</b>. Особое внимание: <b>Пермь, Удмуртия, Владимир</b></p>
+        <p class="lv-d">Переводим в СБР не менее <b>20%</b> застройщиков 2–3 уровня лояльности</p>
+        <p class="lv-m">+12,8 млн</p>
+      </div>
+      <div class="lv">
+        <p class="lv-t">Рост среднего чека СБР</p>
+        <p class="lv-d">Чек СБР <b>3,9&nbsp;млн</b>, средняя цена квартиры <b>6,8&nbsp;млн</b> → чек +1,7%</p>
+        <p class="lv-m">+9,3 млн</p>
+      </div>
+    </div>
+    <div class="seg rv" style="--i:2">
+      <div class="seg-h"><h3>Вторичка</h3><p class="sum">+66 млн</p></div>
+      <div class="lv">
+        <p class="lv-t">СсГ в партнёрских заявках</p>
+        <p class="lv-k"><span class="coral">3,9%</span><i>→</i><span class="green">≥ 8%</span></p>
+        <p class="lv-m">+30 млн</p>
+      </div>
+      <div class="lv">
+        <p class="lv-t">СсГ у частников и самозанятых</p>
+        <p class="lv-k"><span class="coral">1,8%</span><i>→</i><span class="green">≥ 10%</span></p>
+        <p class="lv-m">+36 млн</p>
+      </div>
+    </div>
+    <div class="seg rv" style="--i:3">
+      <div class="seg-h"><h3>Загородка</h3><p class="sum ph">+[__]</p></div>
+      <div class="lv">
+        <p class="lv-t ph">[Драйвер]</p>
+        <p class="lv-d ph">[Текущее значение → цель]</p>
+        <p class="lv-m ph">+[__]</p>
+      </div>
+    </div>
+  </div>
+  <div class="total rv" style="--i:4"><h3>Итого: первичка + вторичка</h3><p>+88,1 млн</p></div>
 </section>
 
 <section class="slide speaker tatar" data-act="Акт II · Драйверы и практики">
