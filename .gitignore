@@ -1,2 +1,5 @@
 node_modules/
 presentation/assets/
+
+# рабочая копия с фото сотрудников — не выкладываем в репозиторий
+kino/*_with-photos.html
