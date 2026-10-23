@@ -8,6 +8,8 @@ USDRUBF (FORTS, режим RFUD) и вспомогательный анализ 
 python3 -m usdrubf quote                       # котировка (JSON): last, bid/offer, OI, время сделки
 python3 -m usdrubf candles -t 15 --from 2026-10-01   # свечи CSV: 1/5/10/15/30/60/240 мин, 1440 — день
 python3 -m usdrubf report                      # сводка для агента (Markdown), --json — JSON, -o файл
+python3 -m usdrubf chart --png               # графики 15м и 1ч (SVG + PNG) в charts/: свечи, MA50/200, зигзаг, уровни
+python3 -m usdrubf chart --png --waves 60=0,A,B,C --level 80.90:"вход 80.90":blue --level 81.20:"стоп 81.20":gray
 python3 -m unittest discover -s tests          # тесты (без сети)
 ```
 
@@ -16,6 +18,9 @@ python3 -m unittest discover -s tests          # тесты (без сети)
 - `usdrubf/analysis.py` — MA, RSI14 (Уайлдер), ATR14, зигзаг-экстремумы, уровни,
   проверка обязательных правил Эллиотта и соотношений волн.
 - `usdrubf/report.py` — сводка: котировка с оценкой свежести, свечи 15м и 1ч, кандидаты разметки.
+- `usdrubf/chart.py` — SVG-график: свечи, MA50/MA200, зигзаг с подписями волн, уровни плана.
+  `--waves ТФ=…` подписывает последние экстремумы зигзага, `--level ЦЕНА:ПОДПИСЬ[:ЦВЕТ]` рисует уровни
+  (если задан хотя бы один — автоуровни не рисуются). PNG — через headless Chromium, rsvg-convert или ImageMagick.
 - `prompts/usdrubf_elliott.md` — промпт торгового агента.
 
 Ограничения: без авторизации ISS отдаёт данные с задержкой ~15 минут — сводка

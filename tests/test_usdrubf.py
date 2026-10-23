@@ -116,6 +116,25 @@ class ReportTest(unittest.TestCase):
         self.assertIn("Таймфрейм 15м", text)
 
 
+class ChartTest(unittest.TestCase):
+    def test_svg_has_waves_and_levels(self):
+        from usdrubf.chart import ChartLevel, render_svg
+
+        s = snapshot("15м", path([80, 81, 80.5, 82.6, 82.0, 83.0, 82.2], step=15), zigzag_atr=0.3)
+        svg = render_svg(s, waves=["0", "A", "B", "C"], levels=[ChartLevel(82.5, "стоп 82.50", "#555555")])
+        self.assertTrue(svg.startswith("<svg"))
+        self.assertIn("стоп 82.50", svg)
+        for label in ("A", "B", "C"):
+            self.assertIn(f">{label}</text>", svg)
+
+    def test_cli_level_parsing(self):
+        from usdrubf.__main__ import parse_level, parse_waves
+
+        lv = parse_level("80.90:вход 80.90:green")
+        self.assertEqual((lv.price, lv.label, lv.color), (80.90, "вход 80.90", "#1e9e6a"))
+        self.assertEqual(parse_waves("60=0, A,B,C"), (60, ["0", "A", "B", "C"]))
+
+
 class ParseTest(unittest.TestCase):
     def test_rows(self):
         data = {"marketdata": {"columns": ["SECID", "LAST"], "data": [["USDRUBF", 81.68]]}}
