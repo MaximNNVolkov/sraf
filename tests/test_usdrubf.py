@@ -115,6 +115,21 @@ class ReportTest(unittest.TestCase):
         self.assertIn("НЕ является текущей", text)
         self.assertIn("Таймфрейм 15м", text)
 
+    def test_render_uses_secid_and_decimals(self):
+        from usdrubf.moex import Quote
+
+        prices = [12.0, 12.1, 12.05, 12.2, 12.15, 12.3, 12.25]
+        m15 = snapshot("15м", path(prices, step=15))
+        h1 = snapshot("1ч", path(prices, step=60))
+        q = Quote("CNYRUB_TOM", "CETS", 12.09, None, None, 12.041, 12.1605, 12.0305, None, 0.22, None, None,
+                  T0, T0, "2026-10-21", engine="currency", market="selt", decimals=4)
+        text = render(q, m15, h1, now=T0)
+        self.assertIn("# CNYRUB_TOM", text)
+        self.assertIn("**12.0900**", text)
+        self.assertIn("рынок currency/selt", text)
+        self.assertNotIn("USDRUBF", text)
+        self.assertNotIn("Расчётная цена", text)  # только для фьючерсов
+
 
 class ChartTest(unittest.TestCase):
     def test_svg_has_waves_and_levels(self):
@@ -143,6 +158,62 @@ class ParseTest(unittest.TestCase):
     def test_unsupported_interval(self):
         with self.assertRaises(ValueError):
             MoexClient().get_candles(15, T0.date())
+
+
+def table(cols, *rows):
+    return {"columns": cols, "data": [list(r) for r in rows]}
+
+
+BOARD_COLS = ["boardid", "market", "engine", "is_primary", "decimals", "is_traded"]
+
+
+class FakeClient(MoexClient):
+    """MoexClient с подменённым транспортом: ответы ISS по префиксу пути."""
+
+    def __init__(self, responses, *args, **kw):
+        super().__init__(*args, **kw)
+        self.responses, self.calls = responses, []
+
+    def _get(self, path, params=None):
+        self.calls.append(path)
+        return next(v for k, v in self.responses.items() if path.startswith(k))
+
+
+class ResolveTest(unittest.TestCase):
+    BOARDS = {"securities/SBER": {"boards": table(
+        BOARD_COLS, ["EQBR", "shares", "stock", 0, 2, 0], ["TQBR", "shares", "stock", 1, 2, 1],
+        ["RPEY", "repo", "stock", 0, 4, 1])}}
+
+    def test_primary_board(self):
+        c = FakeClient(self.BOARDS, "sber")
+        self.assertEqual(c.secid, "SBER")
+        self.assertEqual(c._sec_path, "engines/stock/markets/shares/boards/TQBR/securities/SBER")
+        c._sec_path
+        self.assertEqual(c.calls, ["securities/SBER"])  # режим определяется один раз
+
+    def test_explicit_market(self):
+        c = FakeClient(self.BOARDS, "SBER", market="repo")
+        self.assertEqual(c.resolve().board, "RPEY")
+        self.assertEqual(c.resolve().decimals, 4)
+
+    def test_unknown_secid(self):
+        from usdrubf.moex import MoexError
+
+        c = FakeClient({"securities/": {"boards": table(BOARD_COLS)}}, "NOPE")
+        with self.assertRaises(MoexError):
+            c.get_quote()
+
+    def test_index_quote(self):
+        md = table(["SECID", "BOARDID", "LAST", "CURRENTVALUE", "LASTCHANGEPRC", "UPDATETIME", "SYSTIME", "TRADEDATE"],
+                   ["IMOEX", "SNDX", None, 2491.04, 1.07, "19:08:53", "2026-10-26 19:08:53", None])
+        c = FakeClient({
+            "securities/IMOEX": {"boards": table(BOARD_COLS, ["SNDX", "index", "stock", 1, 2, 1])},
+            "engines/stock/markets/index/boards/SNDX/securities/IMOEX": {"marketdata": md},
+        }, "IMOEX")
+        q = c.get_quote()
+        self.assertEqual((q.last, q.change_pct, q.trade_date), (2491.04, 1.07, "2026-10-26"))
+        self.assertEqual((q.engine, q.market, q.decimals), ("stock", "index", 2))
+        self.assertEqual(q.last_trade_time, datetime(2026, 10, 26, 19, 8, 53, tzinfo=MSK))
 
 
 if __name__ == "__main__":

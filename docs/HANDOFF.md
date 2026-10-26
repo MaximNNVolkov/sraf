@@ -1,11 +1,12 @@
-# HANDOFF — проект USDRUBF / MOEX ISS / Эллиотт
+# HANDOFF — проект MOEX ISS / Эллиотт (любой инструмент, основной — USDRUBF)
 
 Документ для передачи проекта другому агенту. Описывает, что сделано, как это
 устроено, какие правила действуют и что осталось сделать.
 
 ## 1. Назначение
 
-- Получать котировку и свечи фьючерса **USDRUBF** (FORTS) из ISS Московской биржи.
+- Получать котировку и свечи **любого инструмента** Московской биржи из ISS. Основной инструмент
+  пользователя — фьючерс **USDRUBF** (FORTS); для него CLI работает по умолчанию.
 - Строить вспомогательный анализ: MA50/200, RSI14, ATR14, зигзаг, уровни,
   кандидаты разметки по Эллиотту.
 - Рисовать графики 15м и 1ч (SVG и PNG) с разметкой волн и уровнями плана.
@@ -26,14 +27,15 @@
   - 0d8cab8 — .gitignore;
   - 3d8c9e0 — графики;
   - 7554abf — навык;
-  - далее — этот документ.
+  - 5804f7e — этот документ;
+  - далее — универсализация под любой тикер.
 
 ```
 usdrubf/            пакет: moex.py, analysis.py, report.py, chart.py, __main__.py
-tests/              test_usdrubf.py — 18 тестов, без сети
-prompts/            usdrubf_elliott.md — промпт торгового агента
-.claude/skills/     usdrubf-morning/SKILL.md — навык утренней сводки
-charts/             результат команды chart (в .gitignore)
+tests/              test_usdrubf.py — 23 теста, без сети
+prompts/            moex_elliott.md — промпт для любого тикера; usdrubf_elliott.md — особенности USDRUBF
+.claude/skills/     moex-elliott — сводка по тикеру; usdrubf-morning — утренняя сводка (обёртка)
+charts/             результат команды chart: <тикер строчными>_15m|1h.{svg,png} (в .gitignore)
 ```
 
 ## 3. Модули
@@ -42,14 +44,16 @@ charts/             результат команды chart (в .gitignore)
 - Константы:
   - `ISS_BASE="https://iss.moex.com/iss"`;
   - `DEFAULT_SECID="USDRUBF"`;
-  - `ENGINE="futures"`, `MARKET="forts"`;
   - `ISS_PAGE=500` (размер страницы пагинации).
 - Классы данных:
   - `Candle(begin, open, high, low, close, volume)`;
-  - `Quote(secid, board, last, bid, offer, open, high, low, settle_price, change_pct, open_interest, volume_today, last_trade_time, system_time, trade_date, source)`, у него есть свойство `delay_minutes`.
-- `MoexClient(secid, timeout=20, retries=3)`:
+  - `Board(engine, market, board, decimals)`;
+  - `Quote(secid, board, last, bid, offer, open, high, low, settle_price, change_pct, open_interest, volume_today, last_trade_time, system_time, trade_date, source, engine, market, decimals)`, у него есть свойство `delay_minutes`.
+- `MoexClient(secid, engine=None, market=None, board=None, timeout=20, retries=3)`:
+  - `resolve()` при первом обращении запрашивает `securities/{SECID}.json?iss.only=boards`, фильтрует по заданным engine/market/board и берёт `is_primary`, затем `is_traded`. Неизвестный тикер → `MoexError("Инструмент … не найден на MOEX")`;
+  - все запросы идут по пути `engines/{e}/markets/{m}/boards/{b}/securities/{SECID}`;
   - `_get` повторяет запрос с паузами 1, 2 и 4 с, после чего бросает `MoexError("ISS недоступен: …")`;
-  - `get_quote()` бросает `MoexError`, если marketdata пустая;
+  - `get_quote()` бросает `MoexError`, если marketdata пустая. Цена — `LAST`, у индексов `CURRENTVALUE`; изменение — `LASTTOPREVPRICE` или `LASTCHANGEPRC`; торговая дата — `TRADEDATE` или `SYSTIME[:10]`;
   - `get_candles(interval, start, end)` принимает только интервалы ISS: 1, 10, 60, 24 (день), 7 (неделя), 31 (месяц), 4 (квартал);
   - `get_candles_minutes(minutes, …)`:
     - 1, 10 и 60 минут берутся из ISS напрямую;
@@ -77,7 +81,7 @@ charts/             результат команды chart (в .gitignore)
 - `collect(client, days_15m=5, days_1h=30)`:
   - свечи 15м собираются из минуток;
   - свечи 1ч берутся из часовых ISS плюс `merge_tail`.
-- `render` выдаёт Markdown, `to_json(last=100)` — JSON с ключами `quote`, `m15`, `h1`.
+- `render` выдаёт Markdown: заголовок по тикеру, рынок `engine/market`, цены с точностью `quote.decimals`. Расчётная цена и ОИ выводятся только для фьючерсов. `to_json(last=100)` — JSON с ключами `quote`, `m15`, `h1`.
 
 ### chart.py
 - Холст 960×540, справа поле 170 px под подписи.
@@ -85,12 +89,13 @@ charts/             результат команды chart (в .gitignore)
   - свеча вверх #1e9e6a, вниз #d64545;
   - MA50 #e08a00, MA200 #7b4fc9;
   - волны #1f5fbf.
-- `render_svg(s, last=80, levels=None, waves=None, title="")`.
+- `render_svg(s, last=80, levels=None, waves=None, title="", decimals=2)`. CLI передаёт заголовок «ТИКЕР · ТФ · MOEX ISS» и точность инструмента.
 - Уровень инвалидации рисуется серым пунктиром "2 3".
 
 ## 4. CLI
 
-`--secid` — глобальный флаг, ставится до подкоманды.
+Глобальные флаги ставятся до подкоманды: `--secid` (по умолчанию USDRUBF), `--engine`, `--market`, `--board`.
+Ошибки ISS выводятся одной строкой `Ошибка: …` в stderr, код выхода 2.
 
 ```
 python3 -m usdrubf quote                     # JSON
@@ -104,11 +109,11 @@ python3 -m unittest discover -s tests
 - Цвет уровня задаётся словом red, green, blue, gray, orange или кодом `#rrggbb`.
 - Если задан хотя бы один `--level`, автоматические уровни не рисуются.
 - PNG получается первым сработавшим способом: Playwright Chromium, `rsvg-convert`, ImageMagick `convert`.
-- Файлы сохраняются как `charts/usdrubf_15m.*` и `charts/usdrubf_1h.*`.
+- Файлы сохраняются как `charts/{secid строчными}_15m.*` и `charts/{secid строчными}_1h.*`.
 
-## 5. Промпт и навык
+## 5. Промпт и навыки
 
-- `prompts/usdrubf_elliott.md`, разделы 0–9:
+- `prompts/moex_elliott.md` — универсальный промпт, тикер подставляется вместо `{SECID}`. Разделы 0–9:
   - 0 — данные и команды;
   - 1 — роль: рабочий ТФ 15м, подтверждение на 1ч;
   - 2 — правила данных;
@@ -119,12 +124,14 @@ python3 -m unittest discover -s tests
   - **7 — формат ответа**: заголовок, дата и время, цена, статус, график, таблица уровней, волны, таблица плана, одно действие;
   - 8 — взаимодействие;
   - 9 — приоритеты.
-- Навык `.claude/skills/usdrubf-morning/SKILL.md`, шаги:
-  1. Выполнить `quote` и `report --json`, проверить свежесть данных.
+- `prompts/usdrubf_elliott.md` — только особенности USDRUBF: вечный фьючерс RFUD, не спот и не Si, есть расчётная цена и ОИ, клиринги.
+- Навык `.claude/skills/moex-elliott/SKILL.md` (аргумент — тикер), шаги:
+  1. Выполнить `quote` и `report --json` с `--secid`, проверить свежесть и тикер.
   2. Сделать основной и альтернативный волновой счёт, для каждого указать инвалидацию и уверенность.
-  3. Определить уровни.
-  4. Выполнить `chart --png …` и отправить картинки через `SendUserFile`: сначала 1h, потом 15m (`status: proactive`, `display: render`).
-  5. Написать план в формате раздела 7, добавить блок «Что изменилось со вчера».
+  3. Определить уровни с точностью инструмента.
+  4. Выполнить `chart --png …` (отмена — gray) и отправить картинки через `SendUserFile`: сначала 1h, потом 15m (`status: proactive`, `display: render`).
+  5. Написать план в формате раздела 7, добавить блок «Что изменилось с прошлой сводки».
+- Навык `.claude/skills/usdrubf-morning/SKILL.md` — тонкая обёртка: `moex-elliott` с тикером USDRUBF. Его вызывает утренняя задача.
 
 ## 6. Расписание
 
@@ -142,27 +149,14 @@ python3 -m unittest discover -s tests
 
 ## 8. Известные нюансы
 
-- В примере навыка уровень отмены задан как `80.85:Отмена:red`, а промпт требует серую инвалидацию. Надо привести к одному варианту (gray).
-- Тесты не покрывают: сеть, повторы запросов, разбор `get_quote`, CLI `main`, `to_png`.
-- Если PNG не получился, сообщение об ошибке не подсказывает установить Chromium.
+- Тесты не покрывают: живую сеть, повторы запросов, CLI `main`, `to_png`.
+- Соединение с ISS иногда сбрасывается (Connection reset). Клиент делает 3 попытки; если не помогло — `Ошибка: ISS недоступен`, по правилам статус ЖДАТЬ.
+- Пакет по историческим причинам называется `usdrubf`, хотя работает с любым тикером. Его не переименовывали, чтобы не ломать утреннюю задачу и навыки.
 - Автоматическая волновая разметка вспомогательная: последний экстремум зигзага не подтверждён, окончательный счёт делает агент.
+- Проверено вживую: USDRUBF (futures/forts/RFUD), SBER (stock/shares/TQBR), CNYRUB_TOM (currency/selt/CETS, 4–5 знаков), IMOEX (stock/index/SNDX, без bid/offer и объёма).
 
-## 9. Что завязано на USDRUBF
+## 9. Возможные доработки
 
-- `DEFAULT_SECID`, а также `ENGINE`/`MARKET` = futures/forts.
-- User-Agent `usdrubf-agent/1.0`.
-- Заголовок отчёта и текст «FORTS» в `report.py`.
-- Заголовок графика по умолчанию «USDRUBF · tf · MOEX ISS».
-- Имена файлов `usdrubf_{tf}` в `__main__.py`.
-- Формат цены `.2f`.
-- Тексты промпта и навыка.
-
-## 10. Следующая задача: универсальный навык
-
-Пользователь просил: «Сделай навык универсальным для любого инструмента». План:
-
-1. `MoexClient(secid, engine=None, market=None, board=None)`. Если параметры не заданы, при первом обращении определять их через `securities/{SECID}.json?iss.only=boards` (брать основной торгуемый режим `is_primary`).
-2. Дату торгов брать как `TRADEDATE or SYSTIME[:10]`, потому что у акций и валюты поля отличаются.
-3. Добавить в CLI флаги `--engine/--market/--board`. Имена файлов делать `{secid.lower()}_{tf}`, заголовки — без упоминания USDRUBF. Точность цены брать из `DECIMALS` инструмента.
-4. Обобщить промпт до `prompts/moex_elliott.md`. Сделать новый навык `moex-elliott` с параметром тикера, а `usdrubf-morning` оставить тонкой обёрткой над ним.
-5. Обновить тесты и README, затем закоммитить и запушить в `утренняя-сводка`.
+- Таймфреймы, отличные от 15м/1ч, в `report` и `chart` (сейчас фиксированы).
+- Переименование пакета `usdrubf` → `moex` с алиасом для совместимости.
+- Утренние сводки по нескольким тикерам: отдельная задача или список тикеров в промпте задачи.

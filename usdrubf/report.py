@@ -1,8 +1,8 @@
-"""Сводка рыночных данных USDRUBF для торгового агента (Markdown, по-русски).
+"""Сводка рыночных данных инструмента MOEX для торгового агента (Markdown, по-русски).
 
 Отчёт содержит только фактические данные MOEX ISS и рассчитанные по ним
 значения. Итоговый статус ЛОНГ/ШОРТ/ЖДАТЬ ставит агент по промпту
-prompts/usdrubf_elliott.md на основе этой сводки.
+prompts/moex_elliott.md на основе этой сводки.
 """
 
 from __future__ import annotations
@@ -49,8 +49,8 @@ def _freshness(q: Quote, now: datetime) -> str:
     )
 
 
-def _wave_md(w: WaveCheck) -> str:
-    pts = " → ".join(f"{p:.2f}" for p in w.points)
+def _wave_md(w: WaveCheck, nd: int = 2) -> str:
+    pts = " → ".join(f"{p:.{nd}f}" for p in w.points)
     lines = [f"- **{w.pattern} {w.direction}**: {pts} — {'правила соблюдены' if w.valid else 'ОТВЕРГНУТ'}"]
     for name, ok in w.rules:
         lines.append(f"  - {'✓' if ok else '✗'} {name}")
@@ -59,19 +59,19 @@ def _wave_md(w: WaveCheck) -> str:
     for n in w.notes:
         lines.append(f"  - примечание: {n}")
     if w.invalidation is not None and w.valid:
-        lines.append(f"  - уровень отмены разметки: {w.invalidation:.2f}")
+        lines.append(f"  - уровень отмены разметки: {w.invalidation:.{nd}f}")
     return "\n".join(lines)
 
 
-def _snapshot_md(s: Snapshot, pivots: int = 10, last: int = 12) -> str:
+def _snapshot_md(s: Snapshot, nd: int = 2, pivots: int = 10, last: int = 12) -> str:
     rel = []
     for name, v in (("MA50", s.sma50), ("MA200", s.sma200)):
         if v is not None:
-            rel.append(f"{'выше' if s.close > v else 'ниже'} {name} ({v:.2f})")
+            rel.append(f"{'выше' if s.close > v else 'ниже'} {name} ({v:.{nd}f})")
     out = [
         f"### Таймфрейм {s.timeframe}",
-        f"Свечей: {len(s.candles)}, последняя открыта {s.candles[-1].begin:%Y-%m-%d %H:%M} МСК (может быть не закрыта), close {s.close:.2f}.",
-        f"MA50: {_f(s.sma50)} · MA200: {_f(s.sma200)} · RSI14: {_f(s.rsi14, 1)} · ATR14: {_f(s.atr14, 3)}",
+        f"Свечей: {len(s.candles)}, последняя открыта {s.candles[-1].begin:%Y-%m-%d %H:%M} МСК (может быть не закрыта), close {s.close:.{nd}f}.",
+        f"MA50: {_f(s.sma50, nd)} · MA200: {_f(s.sma200, nd)} · RSI14: {_f(s.rsi14, 1)} · ATR14: {_f(s.atr14, nd + 1)}",
         f"Цена {', '.join(rel) if rel else 'н/д относительно MA (мало свечей)'}.",
         "",
         "Последние свечи (МСК, O/H/L/C/объём):",
@@ -80,48 +80,51 @@ def _snapshot_md(s: Snapshot, pivots: int = 10, last: int = 12) -> str:
         "|---|---|---|---|---|---|",
     ]
     for c in s.candles[-last:]:
-        out.append(f"| {c.begin:%d.%m %H:%M} | {c.open:.2f} | {c.high:.2f} | {c.low:.2f} | {c.close:.2f} | {c.volume:.0f} |")
+        out.append(f"| {c.begin:%d.%m %H:%M} | {c.open:.{nd}f} | {c.high:.{nd}f} | {c.low:.{nd}f} | {c.close:.{nd}f} | {c.volume:.0f} |")
     out += ["", "Экстремумы (зигзаг 2×ATR; последний — не подтверждён):", ""]
     for p in s.pivots[-pivots:]:
-        out.append(f"- {p.time:%d.%m %H:%M} {'макс' if p.kind == 'H' else 'мин'} {p.price:.2f}")
+        out.append(f"- {p.time:%d.%m %H:%M} {'макс' if p.kind == 'H' else 'мин'} {p.price:.{nd}f}")
     out += ["", "Уровни по кластерам экстремумов:", ""]
     for lv in s.resistances:
-        out.append(f"- сопротивление {lv.price:.2f} (касаний: {lv.touches})")
+        out.append(f"- сопротивление {lv.price:.{nd}f} (касаний: {lv.touches})")
     for lv in s.supports:
-        out.append(f"- поддержка {lv.price:.2f} (касаний: {lv.touches})")
+        out.append(f"- поддержка {lv.price:.{nd}f} (касаний: {lv.touches})")
     if not (s.resistances or s.supports):
         out.append("- уровни не выделены")
     out += ["", "Кандидаты волновой разметки (автоматическая проверка правил):", ""]
-    out += [_wave_md(w) for w in s.waves] or ["- недостаточно экстремумов для разметки"]
+    out += [_wave_md(w, nd) for w in s.waves] or ["- недостаточно экстремумов для разметки"]
     return "\n".join(out)
 
 
 def render(quote: Quote, m15: Snapshot, h1: Snapshot, now: datetime | None = None) -> str:
     now = now or datetime.now(MSK)
     q = quote
+    nd = q.decimals
+    market = f"{q.engine}/{q.market}" if q.engine else "н/д"
     lines = [
-        "# USDRUBF — рыночные данные MOEX",
+        f"# {q.secid} — рыночные данные MOEX",
         "",
         f"Время формирования: {now:%Y-%m-%d %H:%M} МСК (UTC+3)",
-        f"Источник: MOEX ISS, {q.secid}, режим {q.board} (рынок FORTS, вечный фьючерс доллар/рубль)",
+        f"Источник: MOEX ISS, {q.secid}, режим {q.board} (рынок {market})",
         "",
         "## Котировка",
         "",
-        f"- Последняя цена: **{_f(q.last)}** (сделка {q.last_trade_time:%Y-%m-%d %H:%M:%S} МСК)" if q.last_trade_time else f"- Последняя цена: {_f(q.last)}",
+        f"- Последняя цена: **{_f(q.last, nd)}** (сделка {q.last_trade_time:%Y-%m-%d %H:%M:%S} МСК)" if q.last_trade_time else f"- Последняя цена: {_f(q.last, nd)}",
         f"- Актуальность: {_freshness(q, now)}",
-        f"- Bid/Offer: {_f(q.bid)} / {_f(q.offer)}",
-        f"- Дневной диапазон: O {_f(q.open)} · H {_f(q.high)} · L {_f(q.low)}",
-        f"- Изменение к пред. расчётной: {_f(q.change_pct)}%",
-        f"- Расчётная цена: {_f(q.settle_price)} · ОИ: {_f(q.open_interest, 0)} · Объём (контр.): {_f(q.volume_today, 0)}",
+        f"- Bid/Offer: {_f(q.bid, nd)} / {_f(q.offer, nd)}",
+        f"- Дневной диапазон: O {_f(q.open, nd)} · H {_f(q.high, nd)} · L {_f(q.low, nd)}",
+        f"- Изменение за день: {_f(q.change_pct)}%",
+        f"- Объём: {_f(q.volume_today, 0)}",
+        *([f"- Расчётная цена: {_f(q.settle_price, nd)} · ОИ: {_f(q.open_interest, 0)}"] if q.engine == "futures" else []),
         f"- Торговая дата: {q.trade_date}",
         "",
         "## Свечи и структура",
         "",
         "15-минутные свечи собраны из 1-минутных свечей ISS; часовые — из ISS, незакрытые часы достроены из 1-минутных.",
         "",
-        _snapshot_md(m15),
+        _snapshot_md(m15, nd),
         "",
-        _snapshot_md(h1),
+        _snapshot_md(h1, nd),
         "",
     ]
     return "\n".join(lines)

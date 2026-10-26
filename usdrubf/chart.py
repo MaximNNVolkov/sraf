@@ -29,12 +29,12 @@ def auto_labels(w: WaveCheck) -> list[str]:
     return ["0", "1", "2", "3", "4", "5"] if w.pattern.startswith("импульс") else ["0", "A", "B", "C"]
 
 
-def default_levels(s: Snapshot) -> list[ChartLevel]:
-    out = [ChartLevel(lv.price, f"сопр. {lv.price:.2f}", RES_COLOR) for lv in s.resistances]
-    out += [ChartLevel(lv.price, f"подд. {lv.price:.2f}", SUP_COLOR) for lv in s.supports]
+def default_levels(s: Snapshot, decimals: int = 2) -> list[ChartLevel]:
+    out = [ChartLevel(lv.price, f"сопр. {lv.price:.{decimals}f}", RES_COLOR) for lv in s.resistances]
+    out += [ChartLevel(lv.price, f"подд. {lv.price:.{decimals}f}", SUP_COLOR) for lv in s.supports]
     valid = next((w for w in s.waves if w.valid), None)
     if valid and valid.invalidation is not None:
-        out.append(ChartLevel(valid.invalidation, f"отмена {valid.invalidation:.2f}", INV_COLOR, "2 3"))
+        out.append(ChartLevel(valid.invalidation, f"отмена {valid.invalidation:.{decimals}f}", INV_COLOR, "2 3"))
     return out
 
 
@@ -44,6 +44,7 @@ def render_svg(
     levels: list[ChartLevel] | None = None,
     waves: list[str] | None = None,
     title: str = "",
+    decimals: int = 2,
 ) -> str:
     """Свечи последних `last` баров, MA50/MA200, зигзаг с подписями волн и горизонтальные уровни.
 
@@ -55,7 +56,7 @@ def render_svg(
     offset = len(s.candles) - len(candles)
     closes = [c.close for c in s.candles]
     if levels is None:
-        levels = default_levels(s)
+        levels = default_levels(s, decimals)
     if waves is None:
         valid = next((w for w in s.waves if w.valid), None)
         waves = auto_labels(valid) if valid else []
@@ -91,7 +92,7 @@ def render_svg(
     for k in range(7):
         p = lo + (hi - lo) * k / 6
         out.append(f'<line x1="{PAD_L}" x2="{PAD_L + pw}" y1="{y(p):.1f}" y2="{y(p):.1f}" stroke="#eeeeee"/>')
-        out.append(f'<text x="{PAD_L + pw + 6}" y="{y(p) + 4:.1f}" fill="#888888">{p:.2f}</text>')
+        out.append(f'<text x="{PAD_L + pw + 6}" y="{y(p) + 4:.1f}" fill="#888888">{p:.{decimals}f}</text>')
 
     # подписи времени
     every = max(1, len(candles) // 8)
@@ -158,13 +159,14 @@ def render_svg(
 
     # текущая цена
     last_close = candles[-1].close
+    price = f"{last_close:.{decimals}f}"
     out.append(
-        f'<rect x="{PAD_L + pw + 1}" y="{y(last_close) - 9:.1f}" width="54" height="18" fill="#222222"/>'
-        f'<text x="{PAD_L + pw + 4}" y="{y(last_close) + 4:.1f}" fill="#ffffff">{last_close:.2f}</text>'
+        f'<rect x="{PAD_L + pw + 1}" y="{y(last_close) - 9:.1f}" width="{8 + 7 * len(price)}" height="18" fill="#222222"/>'
+        f'<text x="{PAD_L + pw + 4}" y="{y(last_close) + 4:.1f}" fill="#ffffff">{price}</text>'
     )
 
     # заголовок и легенда
-    head = title or f"USDRUBF · {s.timeframe} · MOEX ISS"
+    head = title or f"{s.timeframe} · MOEX ISS"
     out.append(f'<text x="{PAD_L}" y="18" font-size="15" font-weight="bold" fill="#222222">{escape(head)}</text>')
     legend = [(MA50_COLOR, "MA50"), (MA200_COLOR, "MA200"), (WAVE_COLOR, "зигзаг / волны")]
     lx = PAD_L

@@ -1,5 +1,6 @@
-"""Клиент ISS Московской биржи (https://iss.moex.com) для фьючерса USDRUBF.
+"""Клиент ISS Московской биржи (https://iss.moex.com) для любого инструмента.
 
+Рынок и режим торгов определяются по тикеру (основной режим из ISS), их можно задать явно.
 Только стандартная библиотека. Все времена ISS — московские (Europe/Moscow).
 Неавторизованный доступ к ISS отдаёт данные с задержкой ~15 минут.
 """
@@ -19,8 +20,6 @@ ISS_BASE = "https://iss.moex.com/iss"
 MSK = ZoneInfo("Europe/Moscow")
 
 DEFAULT_SECID = "USDRUBF"
-ENGINE = "futures"
-MARKET = "forts"
 
 # Интервалы, которые ISS отдаёт напрямую (минуты; 24 — день, 7 — неделя, 31 — месяц, 4 — квартал).
 ISS_INTERVALS = {1, 10, 60, 24, 7, 31, 4}
@@ -48,6 +47,14 @@ class Candle:
 
 
 @dataclass(frozen=True)
+class Board:
+    engine: str
+    market: str
+    board: str
+    decimals: int = 2
+
+
+@dataclass(frozen=True)
 class Quote:
     secid: str
     board: str
@@ -65,6 +72,9 @@ class Quote:
     system_time: datetime | None  # время формирования данных на ISS (MSK)
     trade_date: str | None
     source: str = "MOEX ISS"
+    engine: str = ""
+    market: str = ""
+    decimals: int = 2
 
     @property
     def delay_minutes(self) -> float | None:
@@ -86,10 +96,20 @@ class MoexError(RuntimeError):
 
 
 class MoexClient:
-    def __init__(self, secid: str = DEFAULT_SECID, timeout: float = 20, retries: int = 3):
-        self.secid = secid
+    def __init__(
+        self,
+        secid: str = DEFAULT_SECID,
+        engine: str | None = None,
+        market: str | None = None,
+        board: str | None = None,
+        timeout: float = 20,
+        retries: int = 3,
+    ):
+        self.secid = secid.upper()
+        self.engine, self.market, self.board = engine, market, board
         self.timeout = timeout
         self.retries = retries
+        self._board: Board | None = None
 
     # --- транспорт -------------------------------------------------------
 
@@ -99,7 +119,7 @@ class MoexClient:
         last_exc: Exception | None = None
         for attempt in range(self.retries):
             try:
-                req = urllib.request.Request(url, headers={"User-Agent": "usdrubf-agent/1.0"})
+                req = urllib.request.Request(url, headers={"User-Agent": "moex-elliott-agent/1.0"})
                 with urllib.request.urlopen(req, timeout=self.timeout) as resp:
                     return json.loads(resp.read().decode("utf-8"))
             except Exception as exc:  # noqa: BLE001 — сеть/JSON, повторяем
@@ -107,9 +127,26 @@ class MoexClient:
                 time.sleep(2**attempt)
         raise MoexError(f"ISS недоступен: {url}: {last_exc}")
 
+    def resolve(self) -> Board:
+        """Рынок и режим торгов: заданные явно, иначе основной (is_primary) режим инструмента в ISS."""
+        if self._board is None:
+            data = self._get(f"securities/{self.secid}", {"iss.only": "boards"})
+            rows = [
+                r for r in _rows(data, "boards")
+                if all(want is None or r.get(k) == want
+                       for k, want in (("engine", self.engine), ("market", self.market), ("boardid", self.board)))
+            ]
+            if not rows:
+                raise MoexError(f"Инструмент {self.secid} не найден на MOEX (engine={self.engine}, market={self.market}, board={self.board})")
+            r = max(rows, key=lambda r: (r.get("is_primary") == 1, r.get("is_traded") == 1))
+            decimals = r.get("decimals")
+            self._board = Board(r["engine"], r["market"], r["boardid"], 2 if decimals is None else int(decimals))
+        return self._board
+
     @property
     def _sec_path(self) -> str:
-        return f"engines/{ENGINE}/markets/{MARKET}/securities/{self.secid}"
+        b = self.resolve()
+        return f"engines/{b.engine}/markets/{b.market}/boards/{b.board}/securities/{self.secid}"
 
     # --- котировка -------------------------------------------------------
 
@@ -119,23 +156,28 @@ class MoexClient:
         if not md:
             raise MoexError(f"Нет marketdata для {self.secid}")
         m = md[0]
-        trade_date = m.get("TRADEDATE")
+        b = self.resolve()
+        systime = m.get("SYSTIME")
+        trade_date = m.get("TRADEDATE") or (systime[:10] if systime else None)
         return Quote(
             secid=m["SECID"],
-            board=m.get("BOARDID", ""),
-            last=m.get("LAST"),
+            board=m.get("BOARDID") or b.board,
+            last=_first(m, "LAST", "CURRENTVALUE"),  # у индексов цены сделки нет, есть значение индекса
             bid=m.get("BID"),
             offer=m.get("OFFER"),
             open=m.get("OPEN"),
             high=m.get("HIGH"),
             low=m.get("LOW"),
             settle_price=m.get("SETTLEPRICE"),
-            change_pct=m.get("LASTTOPREVPRICE"),
+            change_pct=_first(m, "LASTTOPREVPRICE", "LASTCHANGEPRC"),
             open_interest=m.get("OPENPOSITION"),
             volume_today=m.get("VOLTODAY"),
             last_trade_time=_combine(trade_date, m.get("UPDATETIME")),
-            system_time=_parse_dt(m.get("SYSTIME")),
+            system_time=_parse_dt(systime),
             trade_date=trade_date,
+            engine=b.engine,
+            market=b.market,
+            decimals=b.decimals,
         )
 
     # --- свечи -----------------------------------------------------------
@@ -202,6 +244,10 @@ def _rows(data: dict, block: str) -> list[dict]:
     b = data.get(block) or {}
     cols = b.get("columns", [])
     return [dict(zip(cols, r)) for r in b.get("data", [])]
+
+
+def _first(m: dict, *keys: str):
+    return next((m[k] for k in keys if m.get(k) is not None), None)
 
 
 def _candle(r: dict) -> Candle:
