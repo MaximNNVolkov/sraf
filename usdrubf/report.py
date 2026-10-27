@@ -16,14 +16,15 @@ from .moex import MSK, Candle, MoexClient, Quote, resample
 STALE_MINUTES = 20  # ISS без авторизации отдаёт данные с задержкой ~15 минут
 
 
-def collect(client: MoexClient, days_15m: int = 5, days_1h: int = 30) -> tuple[Quote, Snapshot, Snapshot]:
+def collect(client: MoexClient, days_1h: int = 30, days_1d: int = 400) -> tuple[Quote, Snapshot, Snapshot]:
     quote = client.get_quote()
     today = datetime.now(MSK).date()
-    m1 = client.get_candles(1, today - timedelta(days=days_15m))
-    m15 = resample(m1, 15)
     # Часовые свечи ISS публикуются после закрытия часа; хвост достраиваем из минутных.
+    m1 = client.get_candles(1, today - timedelta(days=1))
     h1 = merge_tail(client.get_candles(60, today - timedelta(days=days_1h)), resample(m1, 60))
-    return quote, snapshot("15м", m15), snapshot("1ч", h1)
+    # Дневная свеча текущего дня в ISS есть и обновляется в ходе торгов.
+    d1 = client.get_candles(24, today - timedelta(days=days_1d))
+    return quote, snapshot("1ч", h1), snapshot("1д", d1)
 
 
 def merge_tail(base: list[Candle], fresh: list[Candle]) -> list[Candle]:
@@ -63,14 +64,20 @@ def _wave_md(w: WaveCheck, nd: int = 2) -> str:
     return "\n".join(lines)
 
 
+def time_format(s: Snapshot) -> str:
+    """Формат времени свечи: для дневного таймфрейма — только дата."""
+    return "%d.%m.%y" if s.timeframe == "1д" else "%d.%m %H:%M"
+
+
 def _snapshot_md(s: Snapshot, nd: int = 2, pivots: int = 10, last: int = 12) -> str:
+    tf = time_format(s)
     rel = []
     for name, v in (("MA50", s.sma50), ("MA200", s.sma200)):
         if v is not None:
             rel.append(f"{'выше' if s.close > v else 'ниже'} {name} ({v:.{nd}f})")
     out = [
         f"### Таймфрейм {s.timeframe}",
-        f"Свечей: {len(s.candles)}, последняя открыта {s.candles[-1].begin:%Y-%m-%d %H:%M} МСК (может быть не закрыта), close {s.close:.{nd}f}.",
+        f"Свечей: {len(s.candles)}, последняя открыта {s.candles[-1].begin:{"%Y-%m-%d" if s.timeframe == "1д" else "%Y-%m-%d %H:%M"}} МСК (может быть не закрыта), close {s.close:.{nd}f}.",
         f"MA50: {_f(s.sma50, nd)} · MA200: {_f(s.sma200, nd)} · RSI14: {_f(s.rsi14, 1)} · ATR14: {_f(s.atr14, nd + 1)}",
         f"Цена {', '.join(rel) if rel else 'н/д относительно MA (мало свечей)'}.",
         "",
@@ -80,10 +87,10 @@ def _snapshot_md(s: Snapshot, nd: int = 2, pivots: int = 10, last: int = 12) -> 
         "|---|---|---|---|---|---|",
     ]
     for c in s.candles[-last:]:
-        out.append(f"| {c.begin:%d.%m %H:%M} | {c.open:.{nd}f} | {c.high:.{nd}f} | {c.low:.{nd}f} | {c.close:.{nd}f} | {c.volume:.0f} |")
+        out.append(f"| {c.begin:{tf}} | {c.open:.{nd}f} | {c.high:.{nd}f} | {c.low:.{nd}f} | {c.close:.{nd}f} | {c.volume:.0f} |")
     out += ["", "Экстремумы (зигзаг 2×ATR; последний — не подтверждён):", ""]
     for p in s.pivots[-pivots:]:
-        out.append(f"- {p.time:%d.%m %H:%M} {'макс' if p.kind == 'H' else 'мин'} {p.price:.{nd}f}")
+        out.append(f"- {p.time:{tf}} {'макс' if p.kind == 'H' else 'мин'} {p.price:.{nd}f}")
     out += ["", "Уровни по кластерам экстремумов:", ""]
     for lv in s.resistances:
         out.append(f"- сопротивление {lv.price:.{nd}f} (касаний: {lv.touches})")
@@ -96,7 +103,7 @@ def _snapshot_md(s: Snapshot, nd: int = 2, pivots: int = 10, last: int = 12) -> 
     return "\n".join(out)
 
 
-def render(quote: Quote, m15: Snapshot, h1: Snapshot, now: datetime | None = None) -> str:
+def render(quote: Quote, h1: Snapshot, d1: Snapshot, now: datetime | None = None) -> str:
     now = now or datetime.now(MSK)
     q = quote
     nd = q.decimals
@@ -120,17 +127,17 @@ def render(quote: Quote, m15: Snapshot, h1: Snapshot, now: datetime | None = Non
         "",
         "## Свечи и структура",
         "",
-        "15-минутные свечи собраны из 1-минутных свечей ISS; часовые — из ISS, незакрытые часы достроены из 1-минутных.",
-        "",
-        _snapshot_md(m15, nd),
+        "Часовые свечи — из ISS, незакрытый час достроен из 1-минутных; дневные — из ISS (текущий день не закрыт).",
         "",
         _snapshot_md(h1, nd),
+        "",
+        _snapshot_md(d1, nd),
         "",
     ]
     return "\n".join(lines)
 
 
-def to_json(quote: Quote, m15: Snapshot, h1: Snapshot, last: int = 100) -> str:
+def to_json(quote: Quote, h1: Snapshot, d1: Snapshot, last: int = 100) -> str:
     def snap(s: Snapshot) -> dict:
         return {
             "timeframe": s.timeframe,
@@ -146,4 +153,4 @@ def to_json(quote: Quote, m15: Snapshot, h1: Snapshot, last: int = 100) -> str:
             "candles": [c.to_dict() for c in s.candles[-last:]],
         }
 
-    return json.dumps({"quote": quote.to_dict(), "m15": snap(m15), "h1": snap(h1)}, ensure_ascii=False, indent=2)
+    return json.dumps({"quote": quote.to_dict(), "h1": snap(h1), "d1": snap(d1)}, ensure_ascii=False, indent=2)

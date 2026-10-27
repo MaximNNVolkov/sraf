@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from html import escape
 
 from .analysis import Snapshot, WaveCheck, sma
+from .report import time_format
 
 W, H = 960, 540
 PAD_L, PAD_R, PAD_T, PAD_B = 12, 170, 44, 34
@@ -60,6 +61,7 @@ def render_svg(
     if waves is None:
         valid = next((w for w in s.waves if w.valid), None)
         waves = auto_labels(valid) if valid else []
+    tf = time_format(s)
 
     lo = min(c.low for c in candles)
     hi = max(c.high for c in candles)
@@ -98,7 +100,7 @@ def render_svg(
     every = max(1, len(candles) // 8)
     for i in range(every // 2, len(candles), every):
         out.append(
-            f'<text x="{x(i):.1f}" y="{H - 12}" fill="#888888" text-anchor="middle">{candles[i].begin:%d.%m %H:%M}</text>'
+            f'<text x="{x(i):.1f}" y="{H - 12}" fill="#888888" text-anchor="middle">{candles[i].begin:{tf}}</text>'
         )
 
     out.append('<g clip-path="url(#plot)">')

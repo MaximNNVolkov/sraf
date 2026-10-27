@@ -17,7 +17,8 @@ from .moex import MSK, MoexClient, MoexError
 from .report import collect, render, to_json
 
 LEVEL_COLORS = {"red": "#d64545", "green": "#1e9e6a", "blue": "#1f5fbf", "gray": "#555555", "orange": "#e08a00"}
-TF_NAMES = {15: "15m", 60: "1h"}
+TF_NAMES = {60: "1h", 1440: "1d"}
+DEFAULT_LAST = {60: 120, 1440: 160}
 
 
 def parse_level(s: str) -> ChartLevel:
@@ -78,8 +79,8 @@ def run(argv: list[str] | None = None) -> int:
     r.add_argument("-o", "--output", help="записать в файл")
 
     g = sub.add_parser("chart", help="SVG-график свечей с волнами и уровнями")
-    g.add_argument("-t", "--timeframe", type=int, action="append", choices=sorted(TF_NAMES), help="15 и/или 60 (по умолчанию оба)")
-    g.add_argument("--last", type=int, help="сколько свечей показать (по умолчанию 80 для 15м, 120 для 1ч)")
+    g.add_argument("-t", "--timeframe", type=int, action="append", choices=sorted(TF_NAMES), help="60 и/или 1440 — день (по умолчанию оба)")
+    g.add_argument("--last", type=int, help="сколько свечей показать (по умолчанию 120 для 1ч, 160 для 1д)")
     g.add_argument("--level", action="append", type=parse_level, default=[], metavar="ЦЕНА:ПОДПИСЬ[:ЦВЕТ]",
                    help="уровень на графике; если задан хотя бы один — автоуровни не рисуются")
     g.add_argument("--waves", action="append", type=parse_waves, default=[], metavar="ТФ=0,A,B,C",
@@ -103,14 +104,14 @@ def run(argv: list[str] | None = None) -> int:
         for k in candles:
             w.writerow([k.begin.strftime("%Y-%m-%d %H:%M"), k.open, k.high, k.low, k.close, k.volume])
     elif args.cmd == "chart":
-        quote, m15, h1 = collect(client)
-        snaps = {15: m15, 60: h1}
+        quote, h1, d1 = collect(client)
+        snaps = {60: h1, 1440: d1}
         waves = dict(args.waves)
         os.makedirs(args.outdir, exist_ok=True)
-        for tf in args.timeframe or [15, 60]:
+        for tf in args.timeframe or [60, 1440]:
             svg = render_svg(
                 snaps[tf],
-                last=args.last or (80 if tf == 15 else 120),
+                last=args.last or DEFAULT_LAST[tf],
                 levels=args.level or None,
                 waves=waves.get(tf),
                 title=f"{quote.secid} · {snaps[tf].timeframe} · MOEX ISS",
@@ -123,8 +124,8 @@ def run(argv: list[str] | None = None) -> int:
             if args.png:
                 print(to_png(path) or "PNG не создан: нет headless Chromium (Playwright), rsvg-convert или ImageMagick")
     else:
-        quote, m15, h1 = collect(client)
-        text = to_json(quote, m15, h1) if args.json else render(quote, m15, h1)
+        quote, h1, d1 = collect(client)
+        text = to_json(quote, h1, d1) if args.json else render(quote, h1, d1)
         if args.output:
             with open(args.output, "w", encoding="utf-8") as f:
                 f.write(text)

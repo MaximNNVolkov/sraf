@@ -106,24 +106,25 @@ class ReportTest(unittest.TestCase):
         from usdrubf.moex import Quote
 
         prices = [80, 81, 80.5, 82.6, 82.0, 83.0, 82.2]
-        m15 = snapshot("15м", path(prices, step=15))
         h1 = snapshot("1ч", path(prices, step=60))
+        d1 = snapshot("1д", path(prices, step=1440))
         q = Quote("USDRUBF", "RFUD", 82.2, 82.19, 82.21, 80, 83, 80, 82.0, 0.2, 1, 2,
                   T0, T0, "2026-10-21")
-        text = render(q, m15, h1, now=T0 + timedelta(hours=2))
+        text = render(q, h1, d1, now=T0 + timedelta(hours=2))
         self.assertIn("MOEX ISS", text)
         self.assertIn("НЕ является текущей", text)
-        self.assertIn("Таймфрейм 15м", text)
+        self.assertIn("Таймфрейм 1ч", text)
+        self.assertIn("Таймфрейм 1д", text)
 
     def test_render_uses_secid_and_decimals(self):
         from usdrubf.moex import Quote
 
         prices = [12.0, 12.1, 12.05, 12.2, 12.15, 12.3, 12.25]
-        m15 = snapshot("15м", path(prices, step=15))
         h1 = snapshot("1ч", path(prices, step=60))
+        d1 = snapshot("1д", path(prices, step=1440))
         q = Quote("CNYRUB_TOM", "CETS", 12.09, None, None, 12.041, 12.1605, 12.0305, None, 0.22, None, None,
                   T0, T0, "2026-10-21", engine="currency", market="selt", decimals=4)
-        text = render(q, m15, h1, now=T0)
+        text = render(q, h1, d1, now=T0)
         self.assertIn("# CNYRUB_TOM", text)
         self.assertIn("**12.0900**", text)
         self.assertIn("рынок currency/selt", text)
@@ -141,6 +142,13 @@ class ChartTest(unittest.TestCase):
         self.assertIn("стоп 82.50", svg)
         for label in ("A", "B", "C"):
             self.assertIn(f">{label}</text>", svg)
+
+    def test_daily_axis_shows_dates(self):
+        from usdrubf.chart import render_svg
+
+        svg = render_svg(snapshot("1д", path([80, 81, 80.5, 82.6, 82.0, 83.0, 82.2], step=1440)))
+        self.assertIn(">21.10.26</text>", svg)
+        self.assertNotIn("00:00</text>", svg)
 
     def test_cli_level_parsing(self):
         from usdrubf.__main__ import parse_level, parse_waves
