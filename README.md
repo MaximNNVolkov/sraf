@@ -28,7 +28,7 @@ python3 -m unittest discover -s tests          # тесты (без сети)
 - `prompts/moex_elliott.md` — промпт торгового агента для любого тикера (`{SECID}`);
   `prompts/usdrubf_elliott.md` — особенности USDRUBF.
 - Навыки: `.claude/skills/moex-elliott` — сводка по любому тикеру; `.claude/skills/usdrubf-morning` —
-  утренняя сводка USDRUBF (обёртка над `moex-elliott`).
+  утренняя сводка USDRUBF и IMOEXF (обёртка над `moex-elliott`).
 - `docs/HANDOFF.md` — описание проекта для передачи другим агентам.
 
 Ограничения: без авторизации ISS отдаёт данные с задержкой ~15 минут — сводка
