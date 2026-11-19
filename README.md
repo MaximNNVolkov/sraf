@@ -1,5 +1,17 @@
 # MOEX — многодневные торговые планы на данных T-Invest
 
+## Прод и тестовый стенд
+
+```sh
+.venv/bin/python scripts/run_env.py prod monitor       # рабочая база
+.venv/bin/python scripts/run_env.py staging test       # тесты без сети
+.venv/bin/python scripts/run_env.py staging backtest   # отдельные результаты
+```
+
+Настройки, секреты и данные режимов разделены. Рабочая база остаётся в
+`trading.db`, база стенда — в `runtime/staging/trading.db`.
+Инструкции и команды: [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md).
+
 Цены и свечи по умолчанию поступают из T-Invest API. Нужен `TINKOFF_TOKEN`
 в окружении или локальном `.env`. Python 3.10+, только стандартная библиотека.
 ISS доступен явно через `--source iss`; без авторизации его данные задержаны.

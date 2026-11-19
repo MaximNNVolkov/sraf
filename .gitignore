@@ -5,3 +5,9 @@ charts/
 trading.db
 trading.db-*
 .env
+
+# Isolated environments and local credentials
+runtime/
+.env.*
+!.env.*.example
+.pytest_cache/

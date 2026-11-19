@@ -6,6 +6,7 @@ store; OPEN_POSITIONS.md is a generated human-readable view.
 from __future__ import annotations
 
 import json
+import os
 import hashlib
 import re
 import sqlite3
@@ -17,7 +18,7 @@ from pathlib import Path
 from math import isfinite
 from typing import Iterable
 
-DEFAULT_DB = Path(__file__).resolve().parents[1] / "trading.db"
+DEFAULT_DB = Path(os.environ.get("MOEX_TRADING_DB", str(Path(__file__).resolve().parents[1] / "trading.db")))
 
 
 class Decision(str, Enum):

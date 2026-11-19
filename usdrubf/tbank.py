@@ -16,13 +16,13 @@ BASE = "https://invest-public-api.tbank.ru/rest/tinkoff.public.invest.api.contra
 
 
 def load_project_env() -> None:
-    path = Path(__file__).resolve().parents[1] / ".env"
+    path = Path(os.environ.get("MOEX_ENV_FILE", str(Path(__file__).resolve().parents[1] / ".env")))
     if path.is_file():
         for line in path.read_text(encoding="utf-8").splitlines():
             line = line.strip()
             if line and not line.startswith("#") and "=" in line:
                 key, value = line.split("=", 1)
-                if key.strip():
+                if key.strip() and (not os.environ.get("MOEX_ENV") or key.strip().startswith("TINKOFF_")):
                     os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
 
 

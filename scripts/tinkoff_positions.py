@@ -57,7 +57,9 @@ def fetch_state() -> dict:
     token = os.environ.get("TINKOFF_TOKEN")
     if not token:
         raise RuntimeError("задайте TINKOFF_TOKEN в окружении или project .env")
-    account_id = os.environ.get("TINKOFF_ACCOUNT_ID", ACCOUNT_ID)
+    account_id = os.environ.get("TINKOFF_ACCOUNT_ID", "" if os.environ.get("MOEX_ENV") == "staging" else ACCOUNT_ID)
+    if not account_id:
+        raise RuntimeError("задайте TINKOFF_ACCOUNT_ID для тестового стенда")
     with ThreadPoolExecutor(max_workers=3) as pool:
         portfolio_future = pool.submit(call, "OperationsService/GetPortfolio", {"accountId": account_id}, token)
         orders_future = pool.submit(call, "OrdersService/GetOrders", {"accountId": account_id}, token)
