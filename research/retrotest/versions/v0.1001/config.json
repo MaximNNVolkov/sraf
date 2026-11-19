@@ -1,0 +1,22 @@
+{
+  "version": "v0.1001",
+  "parent": null,
+  "mode": "agent-research-replay",
+  "ticker": "USDRUBF",
+  "period_start": "2023-01-01",
+  "period_end_inclusive": "2026-06-01",
+  "timezone": "Europe/Moscow",
+  "monitor_hours": [8, 10, 12, 14, 16, 18, 20],
+  "entry_lag_minutes": 15,
+  "entry_price": "close_of_exact_15m_bar_starting_at_confirmation",
+  "entry_missing_bar": "CANCEL_ENTRY_NO_BAR",
+  "entry_invalid_levels_after_lag": "CANCEL_ENTRY_INVALID_LEVELS",
+  "tp1_fraction": 0.5,
+  "stop_after_tp1": "entry",
+  "execution_timeframe_minutes": 1,
+  "ambiguous_policy": "UNRESOLVED_NO_FABRICATED_ORDER",
+  "commission": null,
+  "slippage": null,
+  "funding": null,
+  "min_daily_warmup": 250
+}
