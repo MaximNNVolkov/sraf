@@ -34,6 +34,7 @@ class Candle:
     low: float
     close: float
     volume: float
+    is_complete: bool = True
 
     def to_dict(self) -> dict:
         return {
@@ -43,6 +44,7 @@ class Candle:
             "low": self.low,
             "close": self.close,
             "volume": self.volume,
+            "is_complete": self.is_complete,
         }
 
 
@@ -103,7 +105,7 @@ class MoexClient:
         market: str | None = None,
         board: str | None = None,
         timeout: float = 20,
-        retries: int = 3,
+        retries: int = 5,
     ):
         self.secid = secid.upper()
         self.engine, self.market, self.board = engine, market, board
@@ -124,7 +126,7 @@ class MoexClient:
                     return json.loads(resp.read().decode("utf-8"))
             except Exception as exc:  # noqa: BLE001 — сеть/JSON, повторяем
                 last_exc = exc
-                time.sleep(2**attempt)
+                time.sleep(min(2**attempt, 8))
         raise MoexError(f"ISS недоступен: {url}: {last_exc}")
 
     def resolve(self) -> Board:

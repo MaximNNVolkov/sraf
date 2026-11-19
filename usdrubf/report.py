@@ -19,6 +19,10 @@ STALE_MINUTES = 20  # ISS без авторизации отдаёт данны�
 def collect(client: MoexClient, days_15m: int = 5, days_1h: int = 30) -> tuple[Quote, Snapshot, Snapshot]:
     quote = client.get_quote()
     today = datetime.now(MSK).date()
+    if quote.source == "T-Invest API":
+        m15 = [c for c in client.get_candles_minutes(15, today - timedelta(days=days_15m)) if c.is_complete]
+        h1 = [c for c in client.get_candles(60, today - timedelta(days=days_1h)) if c.is_complete]
+        return quote, snapshot("15м", m15), snapshot("1ч", h1)
     m1 = client.get_candles(1, today - timedelta(days=days_15m))
     m15 = resample(m1, 15)
     # Часовые свечи ISS публикуются после закрытия часа; хвост достраиваем из минутных.
@@ -42,6 +46,8 @@ def _freshness(q: Quote, now: datetime) -> str:
         return "время последней сделки неизвестно"
     lag = (now - q.last_trade_time).total_seconds() / 60
     if lag <= STALE_MINUTES:
+        if q.source != "MOEX ISS":
+            return f"последняя биржевая цена {lag:.0f} мин назад ({q.source})"
         return f"задержка ~{lag:.0f} мин (ISS без авторизации отдаёт данные с задержкой ~15 мин)"
     return (
         f"последняя сделка {lag:.0f} мин назад — торги не идут или данные устарели; "
@@ -51,7 +57,15 @@ def _freshness(q: Quote, now: datetime) -> str:
 
 def _wave_md(w: WaveCheck, nd: int = 2) -> str:
     pts = " → ".join(f"{p:.{nd}f}" for p in w.points)
-    lines = [f"- **{w.pattern} {w.direction}**: {pts} — {'правила соблюдены' if w.valid else 'ОТВЕРГНУТ'}"]
+    if not w.valid:
+        verdict = "ОТВЕРГНУТ"
+    elif any(not ok for _, ok in w.rules):
+        verdict = "соблюдены с оговоркой (см. ✗)"
+    else:
+        verdict = "правила соблюдены"
+    lines = [f"- **{w.pattern} {w.direction}**: {pts} — {verdict}"]
+    if w.tail_offset:
+        lines.append(f"  - окно отстоит от последнего экстремума на {w.tail_offset} точк(и) зигзага")
     for name, ok in w.rules:
         lines.append(f"  - {'✓' if ok else '✗'} {name}")
     if w.ratios:
@@ -91,8 +105,13 @@ def _snapshot_md(s: Snapshot, nd: int = 2, pivots: int = 10, last: int = 12) -> 
         out.append(f"- поддержка {lv.price:.{nd}f} (касаний: {lv.touches})")
     if not (s.resistances or s.supports):
         out.append("- уровни не выделены")
-    out += ["", "Кандидаты волновой разметки (автоматическая проверка правил):", ""]
-    out += [_wave_md(w, nd) for w in s.waves] or ["- недостаточно экстремумов для разметки"]
+    out += ["", "Кандидаты волновой разметки (скользящее окно, автоматическая проверка правил):", ""]
+    if not s.waves:
+        out.append("- недостаточно подтверждённых экстремумов для разметки")
+    else:
+        if all(not w.valid for w in s.waves):
+            out.append("- ни одно окно не проходит правила; ниже самые свежие отклонённые варианты")
+        out += [_wave_md(w, nd) for w in s.waves]
     return "\n".join(out)
 
 
@@ -105,7 +124,7 @@ def render(quote: Quote, m15: Snapshot, h1: Snapshot, now: datetime | None = Non
         f"# {q.secid} — рыночные данные MOEX",
         "",
         f"Время формирования: {now:%Y-%m-%d %H:%M} МСК (UTC+3)",
-        f"Источник: MOEX ISS, {q.secid}, режим {q.board} (рынок {market})",
+        f"Источник: {q.source}, {q.secid}, режим {q.board} (рынок {market})",
         "",
         "## Котировка",
         "",
@@ -120,7 +139,8 @@ def render(quote: Quote, m15: Snapshot, h1: Snapshot, now: datetime | None = Non
         "",
         "## Свечи и структура",
         "",
-        "15-минутные свечи собраны из 1-минутных свечей ISS; часовые — из ISS, незакрытые часы достроены из 1-минутных.",
+        ("Свечи T-Invest API; в анализ включены только завершённые свечи." if q.source == "T-Invest API" else
+         "15-минутные свечи собраны из минутных ISS; часовые — из ISS с минутным хвостом."),
         "",
         _snapshot_md(m15, nd),
         "",
@@ -147,3 +167,25 @@ def to_json(quote: Quote, m15: Snapshot, h1: Snapshot, last: int = 100) -> str:
         }
 
     return json.dumps({"quote": quote.to_dict(), "m15": snap(m15), "h1": snap(h1)}, ensure_ascii=False, indent=2)
+
+
+def render_swing(payload: dict) -> str:
+    """Market context only; scheduled morning scripts separately persist a plan."""
+    lines = [f"# {payload['ticker']} — контекст многодневной сделки", "",
+             f"Источник: {payload['source']} · сформировано {payload['generated_at']}",
+             f"Цена: {payload['price']} · время {payload['last_trade_time']} · возраст {payload['delay_minutes']} мин",
+             "Горизонт: 3–20 торговых дней. W1 — режим, D1 — направление, H4 — подтверждение; H1 только для пробоя/ретеста."]
+    if payload["stale"]:
+        lines.append("Цена последней сессии — справочная, не текущая цена входа.")
+    lines.extend(payload.get("history_issues", []))
+    for key in ("w1", "d1", "h4", "h1"):
+        s = payload[key]
+        lines += ["", f"## {s['timeframe']}",
+                  f"Завершённых свечей: {s['bars']} · история с {s['history_from']}",
+                  f"Последний закрытый бар: {s['last_closed_candle']['begin']} · close {s['close']}",
+                  f"MA20 {s['ma20']} · MA50 {s['ma50']} · MA200 {s['ma200']} · RSI14 {s['rsi14']} · ATR14 {s['atr14']}",
+                  "Поддержки: " + (", ".join(str(x["price"]) for x in s["supports"]) or "не выделены"),
+                  "Сопротивления: " + (", ".join(str(x["price"]) for x in s["resistances"]) or "не выделены")]
+        lines.extend(_wave_md(WaveCheck(**w)) for w in s["waves"])
+    lines += ["", "Это рыночный контекст. Сохранённый план и позиция проверяются утренним скриптом/монитором."]
+    return "\n".join(lines) + "\n"

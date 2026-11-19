@@ -1,0 +1,20 @@
+{
+  "source": "MOEX ISS",
+  "ticker": "IMOEXF",
+  "engine": "futures",
+  "market": "forts",
+  "board": "RFUD",
+  "interval": 24,
+  "requested_from": "2024-09-19",
+  "requested_till": "2026-11-18",
+  "fetched_at_msk": "2026-11-18T14:41:53.077087+03:00",
+  "rows": 553,
+  "first_day": "2024-09-19",
+  "last_day": "2026-11-18",
+  "csv_sha256": "556769700b9dac163c3334564c47e196b03063041d0b5451b644f7d52360ccb6",
+  "request_urls": [
+    "https://iss.moex.com/iss/engines/futures/markets/forts/boards/RFUD/securities/IMOEXF/candles.json?iss.meta=off&iss.only=candles&candles.columns=open%2Cclose%2Chigh%2Clow%2Cvolume%2Cbegin%2Cend&interval=24&from=2024-09-19&till=2026-11-18&start=0",
+    "https://iss.moex.com/iss/engines/futures/markets/forts/boards/RFUD/securities/IMOEXF/candles.json?iss.meta=off&iss.only=candles&candles.columns=open%2Cclose%2Chigh%2Clow%2Cvolume%2Cbegin%2Cend&interval=24&from=2024-09-19&till=2026-11-18&start=500",
+    "https://iss.moex.com/iss/engines/futures/markets/forts/boards/RFUD/securities/IMOEXF/candles.json?iss.meta=off&iss.only=candles&candles.columns=open%2Cclose%2Chigh%2Clow%2Cvolume%2Cbegin%2Cend&interval=24&from=2024-09-19&till=2026-11-18&start=553"
+  ]
+}

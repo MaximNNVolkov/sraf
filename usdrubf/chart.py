@@ -57,9 +57,12 @@ def render_svg(
     closes = [c.close for c in s.candles]
     if levels is None:
         levels = default_levels(s, decimals)
+    anchor = 0
     if waves is None:
         valid = next((w for w in s.waves if w.valid), None)
         waves = auto_labels(valid) if valid else []
+        # окно разметки может не упираться в последний экстремум — сдвигаем подписи
+        anchor = valid.tail_offset if valid else 0
 
     lo = min(c.low for c in candles)
     hi = max(c.high for c in candles)
@@ -137,9 +140,11 @@ def render_svg(
     if len(piv) >= 2:
         pts = " ".join(f"{x(i):.1f},{y(p.price):.1f}" for i, p in piv)
         out.append(f'<polyline points="{pts}" fill="none" stroke="{WAVE_COLOR}" stroke-width="1.6" opacity="0.8"/>')
-    # подписи выравниваются по последнему экстремуму; лишние подписи слева отбрасываются
-    k = min(len(piv), len(waves))
-    for (i, p), label in zip(piv[len(piv) - k:], waves[len(waves) - k:]):
+    # подписи выравниваются по концу окна разметки (anchor = tail_offset);
+    # лишние подписи слева отбрасываются
+    end = max(len(piv) - anchor, 0)
+    k = min(end, len(waves))
+    for (i, p), label in zip(piv[end - k : end], waves[len(waves) - k:]):
         dy = -10 if p.kind == "H" else 20
         out.append(f'<circle cx="{x(i):.1f}" cy="{y(p.price):.1f}" r="3.5" fill="{WAVE_COLOR}"/>')
         out.append(

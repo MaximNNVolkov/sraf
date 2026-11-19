@@ -101,6 +101,54 @@ class ElliottTest(unittest.TestCase):
         self.assertEqual(w.ratios["C/A"], 0.6)
 
 
+def _pivots(prices: list[float]):
+    """Пилотные экстремумы: чётные — максимумы, нечётные — минимумы."""
+    from datetime import datetime
+
+    from usdrubf.analysis import Pivot
+
+    return [
+        Pivot(datetime(2026, 10, 1 + i % 28), float(p), "H" if i % 2 == 0 else "L")
+        for i, p in enumerate(prices)
+    ]
+
+
+class WaveCandidatesTest(unittest.TestCase):
+    """Скользящее окно: валидный счёт не теряется, если он закончился раньше хвоста."""
+
+    def test_finds_window_before_the_tail(self):
+        from usdrubf.analysis import wave_candidates
+
+        # валидный импульс 100→120→110→150→130→170, дальше два «мусорных» экстремума
+        ws = wave_candidates(_pivots([100, 120, 110, 150, 130, 170, 160, 145]))
+        impulses = [w for w in ws if w.pattern.startswith("импульс") and w.valid]
+        self.assertTrue(impulses, f"импульс не найден: {[(w.pattern, w.valid) for w in ws]}")
+        self.assertEqual(impulses[0].points, [100, 120, 110, 150, 130, 170])
+        self.assertGreater(impulses[0].tail_offset, 0)
+
+    def test_last_pivot_is_not_used(self):
+        from usdrubf.analysis import wave_candidates
+
+        # последний (неподтверждённый) экстремум не должен попадать в точки разметки
+        ws = wave_candidates(_pivots([100, 120, 110, 150, 130, 170, 999]))
+        for w in ws:
+            self.assertNotIn(999, w.points)
+
+    def test_too_few_pivots(self):
+        from usdrubf.analysis import wave_candidates
+
+        self.assertEqual(wave_candidates(_pivots([100, 110, 105])), [])
+
+    def test_invalid_fallback_when_nothing_passes(self):
+        from usdrubf.analysis import wave_candidates
+
+        # единственное 4-окно не бьётся с A (C не выходит за конец A), 6 точек нет
+        ws = wave_candidates(_pivots([100, 90, 95, 92, 94]))
+        self.assertTrue(ws)
+        self.assertTrue(all(not w.valid for w in ws))
+        self.assertLessEqual(len(ws), 2)
+
+
 class ReportTest(unittest.TestCase):
     def test_render_offline(self):
         from usdrubf.moex import Quote

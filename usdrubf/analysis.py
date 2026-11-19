@@ -156,6 +156,9 @@ class WaveCheck:
     ratios: dict[str, float] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)
     invalidation: float | None = None
+    # сколько подтверждённых экстремумов осталось ПОСЛЕ окна этой разметки:
+    # 0 — окно упирается в последний подтверждённый экстремум
+    tail_offset: int = 0
 
 
 def check_impulse(points: list[float]) -> WaveCheck:
@@ -226,21 +229,54 @@ def check_abc(points: list[float]) -> WaveCheck:
     )
 
 
-def wave_candidates(pivots: list[Pivot]) -> list[WaveCheck]:
-    """Кандидаты разметки по последним экстремумам зигзага.
+def wave_candidates(
+    pivots: list[Pivot],
+    lookback: int = 12,
+    max_valid: int = 3,
+    include_invalid: bool = True,
+) -> list[WaveCheck]:
+    """Кандидаты разметки: скользящее окно по последним подтверждённым экстремумам.
 
-    Последний экстремум не подтверждён, поэтому последняя волна каждого
-    кандидата может быть ещё не завершена.
+    Раньше проверялся только хвост `pivots[-6:]`, поэтому валидный счёт,
+    закончившийся на пару экстремумов раньше, терялся. Теперь перебираются все
+    окна по `lookback` точкам: валидные идут первыми (свежие вперёд), и только
+    если валидных нет — показываются самые свежие отклонённые.
+
+    Последний экстремум зигзага не подтверждён: он не участвует в разметке, а
+    `tail_offset` показывает, насколько окно отстоит от него.
     """
-    prices = [p.price for p in pivots]
-    out: list[WaveCheck] = []
-    if len(prices) >= 6:
-        out.append(check_impulse(prices[-6:]))
-    if len(prices) >= 4:
-        out.append(check_abc(prices[-4:]))
-    for w in out:
-        w.notes.append("Последняя точка — неподтверждённый экстремум, волна может продолжиться")
-    return out
+    pts = list(pivots)
+    if len(pts) > 1:
+        pts = pts[:-1]  # последний экстремум не подтверждён — размечаем без него
+    if len(pts) > lookback:
+        pts = pts[-lookback:]
+
+    found: list[tuple[bool, int, WaveCheck]] = []
+    for n, check in ((6, check_impulse), (4, check_abc)):
+        for i in range(len(pts) - n + 1):
+            window = pts[i : i + n]
+            w = check([p.price for p in window])
+            offset = len(pts) - (i + n)
+            w.tail_offset = offset
+            w.notes = [nt for nt in w.notes if "неподтверждённый экстремум" not in nt]
+            if offset == 0:
+                w.notes.append(
+                    "Разметка упирается в последний подтверждённый экстремум — волна может быть ещё не завершена"
+                )
+            found.append((w.valid, offset, w))
+
+    if not found:
+        return []
+    valid = [t for t in found if t[0]]
+    if valid:
+        # приоритет: сначала без нарушений правил, потом свежесть окна
+        valid.sort(key=lambda t: (sum(1 for _, ok in t[2].rules if not ok) * 8 + t[1], t[1]))
+        return [t[2] for t in valid[:max_valid]]
+    if not include_invalid:
+        return []
+    invalid = [t for t in found if not t[0]]
+    invalid.sort(key=lambda t: (t[1], t[2].pattern))
+    return [t[2] for t in invalid[:2]]
 
 
 def _r(a: float, b: float) -> float:
